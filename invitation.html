@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Emanuel & Victoria — Invitacion</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Great+Vibes&family=Montserrat:wght@200;300;400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="invite.css" />
+</head>
+<body>
+  <div class="progress-track" aria-hidden="true">
+    <div class="progress-fill" id="scroll-progress"></div>
+  </div>
+
+  <button class="to-top" id="to-top" aria-label="Volver arriba">↑</button>
+
+  <div class="texture-stack" id="texture-stack" aria-hidden="true"></div>
+  <div class="floral-flow" id="floral-flow" aria-hidden="true"></div>
+
+  <header class="hero" id="inicio">
+    <p class="hero__kicker">Con la bendicion de Dios y el amor que nos une</p>
+    <h1 class="hero__names">Emanuel <span>&</span> Victoria</h1>
+    <p class="hero__line">Tenemos el honor de invitarte a celebrar el dia en que uniremos nuestras vidas en matrimonio.</p>
+
+    <div class="hero__date-wrap">
+      <p class="hero__date">10 • Octubre • 2026</p>
+      <p class="hero__time">Ceremonia 1:30 PM · Recepcion 3:30 PM</p>
+    </div>
+
+    <div class="hero__actions">
+      <a class="hero__btn hero__btn--solid" href="#ruta">Ver ruta interactiva</a>
+      <a class="hero__btn" href="#rsvp">Confirmar asistencia</a>
+    </div>
+
+    <div class="hero__countdown" aria-label="Cuenta regresiva principal">
+      <article>
+        <p id="hero-days">0</p>
+        <span>Dias</span>
+      </article>
+      <article>
+        <p id="hero-hours">00</p>
+        <span>Horas</span>
+      </article>
+      <article>
+        <p id="hero-minutes">00</p>
+        <span>Min</span>
+      </article>
+      <article>
+        <p id="hero-seconds">00</p>
+        <span>Seg</span>
+      </article>
+    </div>
+
+    <div class="scroll-hint" aria-hidden="true">
+      <span>Desplazate</span>
+      <div class="scroll-hint__arrow"></div>
+    </div>
+  </header>
+
+  <nav class="quick-nav" aria-label="Navegacion rapida">
+    <a href="#ruta" class="quick-nav__link">Ruta</a>
+    <a href="#agenda" class="quick-nav__link">Agenda</a>
+    <a href="#countdown" class="quick-nav__link">Cuenta Regresiva</a>
+    <a href="#dresscode" class="quick-nav__link">Vestimenta</a>
+    <a href="#gifts" class="quick-nav__link">Regalos</a>
+    <a href="#rsvp" class="quick-nav__link">RSVP</a>
+  </nav>
+
+  <main>
+    <section class="section reveal route" id="ruta">
+      <h2 class="section__title">Ruta de Nuestra Historia</h2>
+      <p class="section__lead">Mientras haces scroll, se va revelando nuestra ruta de recuerdos de forma inmersiva.</p>
+      <p class="route__hint">Para personalizar con sus fotos reales: agrega archivos llamados novios-1.jpg a novios-5.jpg en esta misma carpeta.</p>
+
+      <div class="route__shell">
+        <div class="route__line" aria-hidden="true">
+          <span id="route-progress"></span>
+        </div>
+
+        <article class="memory-step" data-step>
+          <button type="button" class="memory-step__dot" aria-label="Ir al recuerdo 1"></button>
+          <div class="memory-step__media" data-depth="0.16" style="--photo: url('novios-1.jpg'); --fallback: url('floral-1.png');" role="img" aria-label="Primer encuentro"></div>
+          <div class="memory-step__copy">
+            <p class="memory-step__label">Capitulo 1</p>
+            <h3>Primer Encuentro</h3>
+            <p>El momento donde inicio nuestra historia y descubrimos una conexion especial.</p>
+          </div>
+        </article>
+
+        <article class="memory-step" data-step>
+          <button type="button" class="memory-step__dot" aria-label="Ir al recuerdo 2"></button>
+          <div class="memory-step__media" data-depth="0.12" style="--photo: url('novios-2.jpg'); --fallback: url('floral-2.png');" role="img" aria-label="Momentos compartidos"></div>
+          <div class="memory-step__copy">
+            <p class="memory-step__label">Capitulo 2</p>
+            <h3>Nuestros Momentos</h3>
+            <p>Entre risas y conversaciones eternas, fuimos construyendo un amor firme y bonito.</p>
+          </div>
+        </article>
+
+        <article class="memory-step" data-step>
+          <button type="button" class="memory-step__dot" aria-label="Ir al recuerdo 3"></button>
+          <div class="memory-step__media" data-depth="0.18" style="--photo: url('novios-3.jpg'); --fallback: url('floral-3.png');" role="img" aria-label="Nuestro compromiso"></div>
+          <div class="memory-step__copy">
+            <p class="memory-step__label">Capitulo 3</p>
+            <h3>El Si de Nuestro Corazon</h3>
+            <p>Elegimos caminar juntos para siempre y empezar un nuevo capitulo de vida.</p>
+          </div>
+        </article>
+
+        <article class="memory-step" data-step>
+          <button type="button" class="memory-step__dot" aria-label="Ir al recuerdo 4"></button>
+          <div class="memory-step__media" data-depth="0.14" style="--photo: url('novios-4.jpg'); --fallback: url('floral-4.png');" role="img" aria-label="Preparativos de boda"></div>
+          <div class="memory-step__copy">
+            <p class="memory-step__label">Capitulo 4</p>
+            <h3>Preparando Nuestro Gran Dia</h3>
+            <p>Cada detalle esta lleno de ilusion para compartir este momento con las personas que amamos.</p>
+          </div>
+        </article>
+
+        <article class="memory-step" data-step>
+          <button type="button" class="memory-step__dot" aria-label="Ir al recuerdo 5"></button>
+          <div class="memory-step__media" data-depth="0.2" style="--photo: url('novios-5.jpg'); --fallback: url('floral-1.png');" role="img" aria-label="Nos casamos"></div>
+          <div class="memory-step__copy">
+            <p class="memory-step__label">Capitulo Final</p>
+            <h3>Nos Casamos</h3>
+            <p>Este camino nos trajo hasta aqui, y queremos vivirlo contigo en nuestra boda.</p>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section class="section reveal schedule" id="agenda">
+      <h2 class="section__title">Agenda del Dia</h2>
+      <p class="section__lead">Aqui puedes ver ambos momentos del dia sin cambiar de vista.</p>
+
+      <div class="event-grid">
+        <article class="event-panel" id="ceremony-panel">
+          <figure class="event-panel__thumb-wrap">
+            <img class="event-panel__thumb" src="parroquia.jpg" alt="Parroquia Llanos de Santa Lucia" loading="lazy" />
+          </figure>
+          <p class="event-panel__time">Ceremonia · 1:30 PM</p>
+          <h3 class="event-panel__title">Parroquia Llanos de Santa Lucia</h3>
+          <p class="event-panel__text">Nos encantaria que nos acompanes en la ceremonia religiosa y seas testigo de nuestra promesa de amor.</p>
+          <div class="event-panel__actions">
+            <a class="map-link" href="https://maps.app.goo.gl/2EpR7g8YG6NJ1uadA" target="_blank" rel="noopener noreferrer">Abrir en Google Maps</a>
+            <button type="button" class="map-copy" data-url="https://maps.app.goo.gl/2EpR7g8YG6NJ1uadA">Copiar ubicacion</button>
+          </div>
+        </article>
+
+        <article class="event-panel" id="reception-panel">
+          <figure class="event-panel__thumb-wrap">
+            <img class="event-panel__thumb" src="rescate.png" alt="Sala de Eventos Rescate" loading="lazy" />
+          </figure>
+          <p class="event-panel__time">Recepcion · 3:30 PM</p>
+          <h3 class="event-panel__title">Sala de Eventos Rescate</h3>
+          <p class="event-panel__text">Despues de la ceremonia, celebremos juntos con alegria, musica y una noche inolvidable.</p>
+          <div class="event-panel__actions">
+            <a class="map-link" href="https://maps.app.goo.gl/WJtkjTQBSdKbBQnj6?g_st=aw" target="_blank" rel="noopener noreferrer">Abrir en Google Maps</a>
+            <button type="button" class="map-copy" data-url="https://maps.app.goo.gl/WJtkjTQBSdKbBQnj6?g_st=aw">Copiar ubicacion</button>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section class="section reveal countdown" id="countdown">
+      <h2 class="section__title">Cuenta Regresiva</h2>
+      <p class="section__lead">Cada segundo nos acerca a este momento tan esperado.</p>
+
+      <div class="countdown-ring" id="countdown-ring" style="--ring-progress: 0%;">
+        <div class="countdown-ring__inner">
+          <p class="countdown-ring__value" id="countdown-days">0</p>
+          <p class="countdown-ring__label">Dias para la boda</p>
+        </div>
+      </div>
+
+      <div class="countdown-grid" id="countdown-grid">
+        <article>
+          <p id="countdown-hours">00</p>
+          <span>Horas</span>
+        </article>
+        <article>
+          <p id="countdown-minutes">00</p>
+          <span>Minutos</span>
+        </article>
+        <article>
+          <p id="countdown-seconds">00</p>
+          <span>Segundos</span>
+        </article>
+      </div>
+    </section>
+
+    <section class="section reveal dresscode" id="dresscode">
+      <h2 class="section__title">Codigo de Vestimenta</h2>
+      <p class="dresscode__main">Formal</p>
+
+      <div class="dresscode-switch" role="tablist" aria-label="Recomendaciones de vestimenta">
+        <button type="button" class="dresscode-switch__btn is-active" data-note="Mujeres: vestido largo o midi de estilo elegante.">Mujeres</button>
+        <button type="button" class="dresscode-switch__btn" data-note="Hombres: traje formal o conjunto elegante de vestir.">Hombres</button>
+        <button type="button" class="dresscode-switch__btn" data-note="General: evitar prendas casuales para mantener la etiqueta de la celebracion.">General</button>
+      </div>
+
+      <p class="dresscode__note" id="dresscode-note">Mujeres: vestido largo o midi de estilo elegante.</p>
+    </section>
+
+    <section class="section reveal gifts" id="gifts">
+      <h2 class="section__title">Mesa de Regalos</h2>
+      <p class="gifts__text">Para nosotros, tu presencia es el mejor regalo. Si deseas tener un detalle adicional, recibiremos contribuciones en efectivo con mucho carino.</p>
+      <button type="button" class="gifts__btn" id="gift-btn">Enviar buenos deseos</button>
+      <p class="gifts__thanks" id="gift-thanks" hidden>Gracias por tu carino y por acompanarnos en este dia tan especial.</p>
+    </section>
+
+    <section class="section reveal quote" id="frase">
+      <h2 class="section__title">Frase Especial</h2>
+      <p class="quote__line">"El amor todo lo puede, todo lo espera y todo lo soporta."</p>
+      <p class="quote__verse">1 Corintios 13</p>
+      <p class="quote__note">Para nosotros, lo mas importante de este gran dia es compartir nuestra union frente a Dios. Los esperamos con mucha ilusion para ser testigos de nuestra promesa de amor.</p>
+    </section>
+
+    <section class="section reveal rsvp" id="rsvp">
+      <h2 class="section__title">Confirmacion</h2>
+      <p class="rsvp__text">Por favor confirma tu asistencia antes del <strong>20 de septiembre de 2026</strong>.</p>
+
+      <form class="rsvp__form" id="rsvp-form">
+        <input type="text" name="fullName" class="rsvp__input" placeholder="Tu nombre completo" required />
+
+        <div class="rsvp__radio-group">
+          <label class="rsvp__radio">
+            <input type="radio" name="attend" value="yes" required /> Asistire con gusto
+          </label>
+          <label class="rsvp__radio">
+            <input type="radio" name="attend" value="no" required /> No podre asistir
+          </label>
+        </div>
+
+        <div id="companions-wrap" hidden>
+          <input type="number" name="companions" class="rsvp__input" placeholder="Numero de acompanantes" min="0" max="5" value="0" />
+        </div>
+
+        <input type="text" name="song" class="rsvp__input" placeholder="Cancion sugerida (opcional)" />
+        <textarea name="message" class="rsvp__input rsvp__input--textarea" placeholder="Dejanos un mensaje bonito (opcional)"></textarea>
+
+        <button type="submit" class="rsvp__btn">Confirmar asistencia</button>
+      </form>
+
+      <div class="rsvp__thanks" id="rsvp-thanks" hidden></div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <p class="footer__names">E &amp; V</p>
+    <p class="footer__year">2026</p>
+  </footer>
+
+  <script src="invite.js"></script>
+</body>
+</html>

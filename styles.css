@@ -1,0 +1,845 @@
+/* ============================================================
+   RESET & BASE
+   ============================================================ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --cream:   #f7f2e8;
+  --parchment: #ede5d0;
+  --gold:    #c4b896;
+  --green-dark: #2d4a1e;
+  --green-mid:  #3d6128;
+  --green-light: #8a9e70;
+  --ink:     #2a2318;
+  --shadow:  rgba(0,0,0,0.35);
+}
+
+html, body {
+  height: 100%;
+  overflow-x: hidden; /* no horizontal scroll */
+  overflow-y: hidden; /* no vertical scroll on landing */
+  background: var(--cream);
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  color: var(--ink);
+}
+
+/* ============================================================
+   SCENE
+   ============================================================ */
+.scene {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding-bottom: 5vh;
+  gap: clamp(1.2vh, 2.5vh, 3.5vh);
+  overflow: visible;
+  /* Textura de papel con vignette y toques de color */
+  background-color: #ede8dc;
+  background-image:
+    /* Centro iluminado */
+    radial-gradient(ellipse at 50% 46%, rgba(255,252,244,0.80) 0%, transparent 65%),
+    /* Toques verdes en esquinas */
+    radial-gradient(ellipse at  8%  8%, rgba(45,74,30,0.12)    0%, transparent 40%),
+    radial-gradient(ellipse at 92% 92%, rgba(45,74,30,0.12)    0%, transparent 40%),
+    /* Toques dorados */
+    radial-gradient(ellipse at 92%  8%, rgba(196,184,150,0.25) 0%, transparent 40%),
+    radial-gradient(ellipse at  8% 92%, rgba(196,184,150,0.20) 0%, transparent 40%),
+    /* Vignette profundo en bordes */
+    radial-gradient(ellipse at 50% 50%, transparent 45%, rgba(30,24,14,0.30) 100%),
+    /* Textura de papel */
+    url('textura.jpg');
+  background-size: cover;
+  background-blend-mode: normal, normal, normal, normal, normal, multiply, overlay;
+}
+
+/* ============================================================
+   FLORALES
+   ============================================================ */
+
+/* Base compartida para florales fixed */
+.floral {
+  position: fixed;
+  height: auto;
+  pointer-events: none;
+  object-fit: contain;
+}
+
+/* ── Superior izquierda (orquídeas) — sobre todo ── */
+.floral--tl {
+  top: -30px;
+  left: -30px;
+  width: clamp(200px, 28vw, 400px);
+  z-index: 500;
+  animation: floralFloat 8s ease-in-out infinite;
+}
+
+/* ── Inferior derecha (lirios) — sobre todo ── */
+.floral--br {
+  bottom: -30px;
+  right: -30px;
+  width: clamp(220px, 30vw, 440px);
+  z-index: 500;
+  transform: rotate(180deg);
+  animation: floralFloatBr 9s ease-in-out infinite;
+  animation-delay: -4s;
+}
+
+/* ── Superior derecha — fondo suave ── */
+.floral--bg-tr {
+  top: -20px;
+  right: -20px;
+  width: clamp(140px, 18vw, 260px);
+  opacity: 0.5;
+  z-index: 1;
+  transform: scaleX(-1);
+  animation: floralFloatBgTr 10s ease-in-out infinite;
+  animation-delay: -2s;
+}
+
+/* ── Inferior izquierda — fondo suave ── */
+.floral--bg-bl {
+  bottom: -20px;
+  left: -20px;
+  width: clamp(140px, 18vw, 240px);
+  opacity: 0.45;
+  z-index: 1;
+  transform: rotate(180deg);
+  animation: floralFloatBgBl 11s ease-in-out infinite;
+  animation-delay: -6s;
+}
+
+/* ── Flor pegada al sobre — escala junto con el envelope en hover ── */
+.floral--env-tl {
+  position: absolute;
+  width: clamp(120px, 44%, 200px);
+  top: -26%;
+  left: -14%;
+  z-index: 20;
+  pointer-events: none;
+  transform-origin: center center;
+  transition: transform 0.3s ease;
+}
+
+@keyframes floralFloat {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  50%       { transform: translateY(-12px) rotate(1.8deg); }
+}
+@keyframes floralFloatBr {
+  0%, 100% { transform: rotate(180deg) translateY(0px); }
+  50%       { transform: rotate(181.8deg) translateY(-12px); }
+}
+@keyframes floralFloatBgTr {
+  0%, 100% { transform: scaleX(-1) translateY(0px); }
+  50%       { transform: scaleX(-1) translateY(-8px); }
+}
+@keyframes floralFloatBgBl {
+  0%, 100% { transform: rotate(180deg) translateY(0px); }
+  50%       { transform: rotate(181.5deg) translateY(-8px); }
+}
+
+/* ============================================================
+   LANDING TEXTS
+   ============================================================ */
+.landing__title {
+  font-family: 'Great Vibes', cursive;
+  font-size: clamp(2rem, 5vw, 3.2rem);
+  color: var(--green-dark);
+  letter-spacing: 0.03em;
+  text-align: center;
+  opacity: 0;
+  animation: fadeUp 1s ease forwards 0.3s;
+  transition: opacity 0.5s ease;
+}
+.landing__hint {
+  font-family: 'Montserrat', sans-serif;
+  font-size: clamp(0.65rem, 1.4vw, 0.82rem);
+  font-weight: 300;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--green-mid);
+  opacity: 0;
+  animation: fadeUp 1s ease forwards 0.8s;
+  transition: opacity 0.5s;
+}
+.landing__hint.hidden { opacity: 0 !important; }
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ============================================================
+   ENVELOPE WRAPPER
+   ============================================================ */
+.envelope-wrapper {
+  position: relative;
+  width: clamp(280px, 55vw, 580px);
+  cursor: pointer;
+  outline: none;
+  opacity: 0;
+  animation: fadeUp 1s ease forwards 0.5s;
+  z-index: 2;
+}
+.envelope-wrapper:focus-visible .envelope {
+  box-shadow: 0 0 0 3px var(--gold), 0 20px 60px var(--shadow);
+}
+
+/* ============================================================
+   ENVELOPE — 3D CSS
+   The envelope is built with 5 pieces:
+   back, left flap, right flap, bottom, top flap
+   ============================================================ */
+.envelope {
+  position: relative;
+  width: 100%;
+  padding-bottom: 62.5%; /* 1.6:1 landscape */
+  transform-style: preserve-3d;
+  transition: transform 0.3s ease;
+  filter: drop-shadow(0 20px 40px rgba(0,0,0,0.28));
+  overflow: visible; /* letter and vinyl rise above */
+}
+.envelope-wrapper:hover .envelope,
+.envelope-wrapper:hover .floral--env-tl {
+  transform: scale(1.03) translateY(-4px);
+}
+.envelope-wrapper.opened .envelope {
+  transform: none !important;
+  filter: none;
+}
+.envelope-wrapper.opened .floral--env-tl {
+  transform: none !important;
+}
+
+/* ── Base / back — fills entire envelope ── */
+.env-back {
+  position: absolute;
+  inset: 0;
+  background-color: var(--green-dark);
+  background-image: url('textura.jpg');
+  background-size: cover;
+  background-blend-mode: multiply;
+  border-radius: 3px;
+  z-index: 0;
+}
+
+/* Textura compartida para piezas del sobre */
+.env-side--left,
+.env-side--right,
+.env-bottom,
+.env-flap {
+  position: absolute;
+  inset: 0;
+  background-image: url('textura.jpg');
+  background-size: cover;
+}
+
+/* ── Left fold ── */
+.env-side--left {
+  background-color: #2a4419;
+  background-blend-mode: multiply;
+  clip-path: polygon(0 0, 50% 50%, 0 100%);
+  z-index: 3;
+}
+
+/* ── Right fold — z-index 7 para tapar el vinilo naturalmente ── */
+.env-side--right {
+  background-color: #2a4419;
+  background-blend-mode: multiply;
+  clip-path: polygon(100% 0, 50% 50%, 100% 100%);
+  z-index: 7;
+}
+
+/* ── Bottom fold ── */
+.env-bottom {
+  background-color: #1e3212;
+  background-blend-mode: multiply;
+  clip-path: polygon(0 100%, 50% 49%, 100% 100%);
+  z-index: 5;
+}
+
+/* ── Top flap ── */
+.env-flap {
+  background-color: #3d6128;
+  background-blend-mode: multiply;
+  clip-path: polygon(0 0, 50% 48%, 100% 0);
+  z-index: 10;
+  transform-origin: top center;
+  transform-style: preserve-3d;
+  transition: transform 0.85s cubic-bezier(0.4, 0, 0.2, 1);
+  filter: drop-shadow(0 6px 10px rgba(0,0,0,0.25));
+}
+
+/* Flap open */
+.envelope-wrapper.opening .env-flap,
+.envelope-wrapper.opened  .env-flap {
+  transform: perspective(800px) rotateX(-175deg);
+}
+
+/* ── Wax seal — sits at flap/body junction (≈48% from top) ── */
+.wax-seal {
+  position: absolute;
+  width: 15%;
+  aspect-ratio: 1;
+  top: calc(48% - 7.5%);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 15;
+  transition: opacity 0.4s ease 0.1s, transform 0.4s ease 0.1s;
+  filter: drop-shadow(0 3px 8px rgba(0,0,0,0.45));
+}
+.wax-seal svg,
+.wax-seal img { width: 100%; height: 100%; object-fit: contain; }
+
+.envelope-wrapper.opening .wax-seal,
+.envelope-wrapper.opened  .wax-seal {
+  opacity: 0;
+  transform: translateX(-50%) scale(0.5);
+}
+
+/* ============================================================
+   CONTENTS — inside .envelope, z-index 2 (below bottom fold z-5)
+   Letter is full-width; its lower portion stays hidden behind env-bottom.
+   JS animates translateY to slide letter out.
+   ============================================================ */
+.env-contents {
+  position: absolute;
+  bottom: 0;
+  left: 2%;
+  width: 96%;
+  z-index: 2;
+  display: none;
+  pointer-events: none;
+  opacity: 0;
+}
+
+.env-contents.show-contents { display: block; }
+
+.env-contents.animating {
+  transition: transform 1s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+              opacity   0.4s ease 0.15s;
+}
+
+.env-contents.risen {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* ============================================================
+   LETTER
+   ============================================================ */
+.letter {
+  width: 100%;
+  background-color: #ede8dc;
+  background-image: url('textura.jpg');
+  background-size: cover;
+  background-blend-mode: multiply;
+  border-radius: 3px 3px 0 0;
+  /* large bottom padding stays hidden inside envelope */
+  padding: clamp(14px, 3.5vw, 24px) clamp(10px, 2.5vw, 20px) clamp(44px, 11vw, 80px);
+  box-shadow: 0 -2px 20px rgba(0,0,0,0.12);
+  text-align: center;
+}
+
+.letter__header { margin-bottom: 0.5em; }
+
+.letter__subtitle {
+  font-family: 'Montserrat', sans-serif;
+  font-size: clamp(0.5rem, 1.2vw, 0.7rem);
+  font-weight: 300;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--green-mid);
+  margin-bottom: 0.3em;
+}
+.letter__names {
+  font-family: 'Great Vibes', cursive;
+  font-size: clamp(1.4rem, 3.5vw, 2.8rem);
+  line-height: 1.1;
+  color: var(--green-dark);
+  margin: 0.2em 0;
+  /* Emboss effect — luz arriba, sombra abajo */
+  text-shadow:
+    0px -1px 1px rgba(255,255,255,0.7),
+    0px  1px 2px rgba(42,35,24,0.35);
+}
+.ampersand {
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic;
+  font-size: 0.7em;
+  color: var(--gold);
+}
+.letter__divider { margin: 0.6em auto; max-width: 200px; }
+.letter__divider svg { width: 100%; }
+
+.letter__day {
+  font-family: 'Montserrat', sans-serif;
+  font-size: clamp(0.5rem, 1vw, 0.65rem);
+  font-weight: 300;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--green-mid);
+}
+.letter__date-num {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(0.75rem, 1.8vw, 1.1rem);
+  color: var(--ink);
+  margin: 0.1em 0;
+  text-shadow:
+    0px -1px 1px rgba(255,255,255,0.6),
+    0px  1px 1px rgba(42,35,24,0.25);
+}
+.letter__time {
+  font-family: 'Montserrat', sans-serif;
+  font-size: clamp(0.5rem, 1vw, 0.65rem);
+  font-weight: 300;
+  letter-spacing: 0.15em;
+  color: var(--green-mid);
+}
+.letter__venue {
+  font-family: 'Great Vibes', cursive;
+  font-size: clamp(0.9rem, 2vw, 1.4rem);
+  color: var(--green-dark);
+  margin-top: 0.5em;
+}
+.letter__address {
+  font-family: 'Montserrat', sans-serif;
+  font-size: clamp(0.45rem, 0.9vw, 0.6rem);
+  font-weight: 300;
+  letter-spacing: 0.1em;
+  color: #5a5040;
+  margin: 0.2em 0 0.8em;
+}
+.letter__cta {
+  display: inline-block;
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: clamp(1.05rem, 2.4vw, 1.5rem);
+  font-weight: 700;
+  font-style: italic;
+  letter-spacing: 0.06em;
+  color: var(--green-dark);
+  background: transparent;
+  text-decoration: none;
+  padding: 4px 0 5px;
+  margin-top: 0.7em;
+  border: none;
+  border-bottom: 1.5px solid var(--gold);
+  text-shadow:
+    0  1px 0 rgba(255,255,255,0.75),
+    0 -1px 0 rgba(0,0,0,0.15);
+  transition: color 0.2s, border-color 0.2s, transform 0.15s;
+}
+.letter__cta:hover {
+  color: var(--green-mid);
+  border-bottom-color: var(--green-mid);
+  transform: translateY(-1px);
+}
+
+/* ============================================================
+   VINYL RECORD
+   ============================================================ */
+.vinyl-wrapper {
+  position: absolute;
+  right: 4%;
+  top: 10%;
+  width: 26%;
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+  z-index: 4;
+  cursor: pointer;
+  pointer-events: none;
+  opacity: 0;
+  transition: transform 1s cubic-bezier(0.34, 1.56, 0.64, 1) 0.2s,
+              opacity   0.5s ease 0.3s;
+}
+
+.vinyl {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: radial-gradient(circle at 30% 30%, #3a3a3a, #111 60%, #000);
+  box-shadow:
+    0 6px 24px rgba(0,0,0,0.5),
+    inset 0 0 0 2px rgba(255,255,255,0.04);
+  overflow: hidden;
+  transition: transform 0.3s ease;
+}
+.vinyl:hover { transform: scale(1.04); }
+
+/* Grooves */
+.vinyl__grooves {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: repeating-radial-gradient(
+    circle at center,
+    transparent 0px,
+    transparent 3px,
+    rgba(255,255,255,0.03) 3px,
+    rgba(255,255,255,0.03) 4px
+  );
+}
+
+/* Sheen */
+.vinyl::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: linear-gradient(135deg, rgba(255,255,255,0.08) 0%, transparent 50%);
+}
+
+/* Texto circular "Click to play" en el vinilo */
+.vinyl__circular-text {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 80%;
+  aspect-ratio: 1;
+  z-index: 4;
+  pointer-events: none;
+}
+.vinyl__circular-text text {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 7.5px;
+  fill: rgba(196,184,150,0.55);
+  letter-spacing: 2.2px;
+  font-weight: 300;
+}
+
+/* Center label */
+.vinyl__label {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 34%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: radial-gradient(circle, #3d6128, #2d4a1e);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+  border: 1px solid #4a7a30;
+  overflow: hidden;
+}
+.vinyl__label-title {
+  font-family: 'Great Vibes', cursive;
+  font-size: clamp(0.4rem, 0.9vw, 0.7rem);
+  color: var(--gold);
+  line-height: 1;
+  white-space: nowrap;
+}
+.vinyl__label-sub {
+  font-family: 'Montserrat', sans-serif;
+  font-size: clamp(0.2rem, 0.4vw, 0.28rem);
+  font-weight: 300;
+  letter-spacing: 0.05em;
+  color: #c4b896aa;
+  text-align: center;
+  margin-top: 1px;
+}
+.vinyl__label-year {
+  font-family: 'Montserrat', sans-serif;
+  font-size: clamp(0.18rem, 0.38vw, 0.26rem);
+  font-weight: 200;
+  color: #c4b89688;
+}
+
+/* Center hole */
+.vinyl__hole {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 4%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: #0a0a0a;
+  z-index: 3;
+  box-shadow: 0 0 0 1px rgba(255,255,255,0.1);
+}
+
+/* Spinning animation */
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+.vinyl.spinning {
+  animation: spin 2.5s linear infinite;
+}
+
+/* CTA bajo el vinilo — oculto, reemplazado por texto circular */
+.vinyl__cta { display: none; }
+
+/* Opening animation states are handled fully by JS (precise pixel translateY) */
+
+/* ============================================================
+   TRANSITION TO FULL INVITATION
+   ============================================================ */
+.scene.transitioning .landing__title,
+.scene.transitioning .landing__hint,
+.scene.transitioning .floral--tl,
+.scene.transitioning .floral--br,
+.scene.transitioning .floral--bg-tr,
+.scene.transitioning .floral--bg-bl {
+  opacity: 0;
+  transition: opacity 0.55s ease;
+}
+
+.scene.scene--collapsed {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+
+.envelope-wrapper.disassembling {
+  pointer-events: none;
+}
+
+.envelope-wrapper.disassembling .env-back {
+  animation: envBackFade 0.8s ease forwards;
+}
+
+.envelope-wrapper.disassembling .env-side--left {
+  animation: envLeftAway 0.86s cubic-bezier(0.22, 0.61, 0.36, 1) forwards;
+}
+
+.envelope-wrapper.disassembling .env-side--right {
+  animation: envRightAway 0.86s cubic-bezier(0.22, 0.61, 0.36, 1) forwards;
+}
+
+.envelope-wrapper.disassembling .env-bottom {
+  animation: envBottomDrop 0.9s ease forwards;
+}
+
+.envelope-wrapper.disassembling .env-flap {
+  animation: envFlapFly 0.85s ease forwards;
+}
+
+.envelope-wrapper.disassembling .wax-seal {
+  animation: waxSealFade 0.4s ease forwards;
+}
+
+.envelope-wrapper.disassembling .vinyl-wrapper {
+  opacity: 0 !important;
+  pointer-events: none !important;
+  transform: translateY(-170px) rotate(-12deg) scale(0.78) !important;
+  transition: transform 0.7s ease, opacity 0.4s ease;
+}
+
+.envelope-wrapper.disassembling .floral--env-tl {
+  animation: envFlowerAway 0.7s ease forwards;
+}
+
+@keyframes envBackFade {
+  from { opacity: 1; transform: scale(1); }
+  to { opacity: 0; transform: scale(0.92); }
+}
+
+@keyframes envLeftAway {
+  from { opacity: 1; transform: translate(0, 0) rotate(0deg); }
+  to { opacity: 0; transform: translate(-54%, -18%) rotate(-22deg); }
+}
+
+@keyframes envRightAway {
+  from { opacity: 1; transform: translate(0, 0) rotate(0deg); }
+  to { opacity: 0; transform: translate(54%, -18%) rotate(22deg); }
+}
+
+@keyframes envBottomDrop {
+  from { opacity: 1; transform: translateY(0) scaleX(1); }
+  to { opacity: 0; transform: translateY(135%) scaleX(1.07); }
+}
+
+@keyframes envFlapFly {
+  from { transform: perspective(800px) rotateX(-175deg) translateY(0); opacity: 1; }
+  to { transform: perspective(800px) rotateX(-175deg) translateY(-120px) rotateZ(-8deg); opacity: 0; }
+}
+
+@keyframes waxSealFade {
+  from { opacity: 1; transform: translateX(-50%) scale(1); }
+  to { opacity: 0; transform: translateX(-50%) scale(0.15); }
+}
+
+@keyframes envFlowerAway {
+  from { opacity: 1; transform: translate(0, 0) rotate(0deg) scale(1); }
+  to { opacity: 0; transform: translate(-35px, -30px) rotate(-12deg) scale(0.84); }
+}
+
+.letter.letter--ghost {
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+.letter-transition-clone {
+  position: fixed;
+  margin: 0;
+  z-index: 1200;
+  pointer-events: none;
+  transform-origin: center center;
+  box-shadow: 0 16px 45px rgba(0,0,0,0.24);
+}
+
+.letter-transition-clone .letter__cta {
+  display: none;
+}
+
+.letter-transition-clone.animating {
+  transition: transform 1s cubic-bezier(0.2, 0.7, 0.1, 1),
+              border-radius 1s ease,
+              box-shadow 1s ease,
+              opacity 0.35s ease;
+}
+
+html.invitation-open,
+body.invitation-open {
+  overflow: hidden;
+}
+
+.invitation-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1100;
+  background: var(--cream);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 0.65s ease, visibility 0s linear 0.65s;
+}
+
+.invitation-overlay.visible {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transition: opacity 0.65s ease;
+}
+
+.invitation-overlay iframe {
+  width: 100%;
+  height: 100%;
+  border: 0;
+  opacity: 0;
+  transform: scale(1.015);
+  transition: opacity 0.5s ease 0.18s, transform 0.5s ease 0.18s;
+  background: var(--cream);
+}
+
+.invitation-overlay.visible iframe {
+  opacity: 1;
+  transform: scale(1);
+}
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+
+/* ── Móvil pequeño (< 480px) ── */
+@media (max-width: 480px) {
+  .scene {
+    gap: 1.8vh;
+    padding-bottom: 0;
+    padding-top: 7vh;
+    justify-content: center;
+  }
+
+  .landing__title { font-size: clamp(1.4rem, 7vw, 2rem); }
+  .landing__hint  { font-size: clamp(0.55rem, 2.8vw, 0.75rem); }
+
+  .envelope-wrapper { width: min(92vw, 380px); }
+
+  /* Flores principales */
+  .floral--tl { width: clamp(160px, 46vw, 210px); }
+  .floral--br { width: clamp(170px, 48vw, 220px); }
+
+  /* Flores de fondo */
+  .floral--bg-tr { width: clamp(140px, 38vw, 180px); opacity: 0.6; }
+  .floral--bg-bl { width: clamp(130px, 36vw, 170px); opacity: 0.55; }
+
+  .floral--env-tl { width: clamp(90px, 38%, 130px); }
+
+  /* Letter */
+  .letter__names    { font-size: clamp(1.6rem, 8vw, 2.4rem); }
+  .letter__date-num { font-size: clamp(0.7rem, 3vw, 1rem); }
+  .letter__time,
+  .letter__day      { font-size: clamp(0.5rem, 2.2vw, 0.65rem); }
+  .letter__cta {
+    font-size: clamp(0.82rem, 3.8vw, 1rem);
+    letter-spacing: 0.05em;
+    padding: 6px 0 7px;
+    margin-top: 0.85em;
+    border: none;
+    border-bottom: 2px solid var(--gold);
+    background: transparent;
+    border-radius: 0;
+    box-shadow: none;
+  }
+}
+
+/* ── Móvil / tablet portrait (480px – 768px) ── */
+@media (min-width: 481px) and (max-width: 768px) {
+  .scene { gap: 2vh; }
+
+  .envelope-wrapper { width: min(72vw, 400px); }
+
+  .floral--tl,
+  .floral--br    { width: clamp(140px, 22vw, 220px); }
+  .floral--bg-tr,
+  .floral--bg-bl { width: clamp(120px, 18vw, 180px); }
+
+  .floral--env-tl { width: clamp(110px, 40%, 160px); }
+}
+
+/* ── Tablet landscape / desktop pequeño (769px – 1024px) ── */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .envelope-wrapper { width: min(55vw, 430px); }
+
+  .floral--tl,
+  .floral--br    { width: clamp(180px, 24vw, 300px); }
+  .floral--bg-tr,
+  .floral--bg-bl { width: clamp(150px, 18vw, 240px); }
+}
+
+/* ── Desktop mediano (1025px – 1440px) ── */
+@media (min-width: 1025px) and (max-width: 1440px) {
+  .envelope-wrapper { width: clamp(400px, 44vw, 560px); }
+
+  .floral--tl,
+  .floral--br    { width: clamp(240px, 26vw, 360px); }
+  .floral--bg-tr,
+  .floral--bg-bl { width: clamp(180px, 20vw, 280px); }
+}
+
+/* ── Desktop grande / 4K (> 1440px) ── */
+@media (min-width: 1441px) {
+  .envelope-wrapper { width: clamp(500px, 38vw, 740px); }
+
+  .landing__title { font-size: clamp(2.4rem, 3.5vw, 4rem); }
+
+  .floral--tl,
+  .floral--br    { width: clamp(280px, 22vw, 480px); }
+  .floral--bg-tr,
+  .floral--bg-bl { width: clamp(220px, 18vw, 380px); }
+}
+
+/* ── Landscape en móvil (altura < 520px) ── */
+@media (max-height: 520px) and (orientation: landscape) {
+  .scene { gap: 1.2vh; }
+
+  .landing__title  { font-size: clamp(1.1rem, 4vw, 1.6rem); }
+  .envelope-wrapper { width: min(52vh, 340px); }
+
+  .floral--tl,
+  .floral--br    { width: clamp(80px, 18vh, 140px); }
+  .floral--bg-tr,
+  .floral--bg-bl { width: clamp(70px, 14vh, 110px); }
+}

@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Emanuel & Victoria — Invitación de Boda</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,300;1,400;1,600;1,700&family=Great+Vibes&family=Montserrat:wght@200;300;400&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+  <!-- ░░ LANDING — SOBRE CERRADO ░░ -->
+  <section id="landing" class="scene">
+
+    <!-- Flores fijas de fondo — 4 esquinas -->
+    <img class="floral floral--tl"    src="floral-3.png" alt="" aria-hidden="true" />
+    <img class="floral floral--br"    src="floral-4.png" alt="" aria-hidden="true" />
+    <img class="floral floral--bg-tr" src="floral-1.png" alt="" aria-hidden="true" />
+    <img class="floral floral--bg-bl" src="floral-2.png" alt="" aria-hidden="true" />
+
+    <p class="landing__title">Recibiste una invitación</p>
+
+    <!-- Sobre CSS 3D -->
+    <div id="envelope-wrapper" class="envelope-wrapper" role="button" tabindex="0" aria-label="Haz click para abrir la invitación">
+      <!-- Flor pegada al sobre — se mueve junto con él -->
+      <img class="floral--env-tl" src="floral-1.png" alt="" aria-hidden="true" />
+      <div id="envelope" class="envelope">
+
+        <!-- z-index 0: Fondo del sobre -->
+        <div class="env-back"></div>
+
+        <!-- z-index 2: Carta — sube al abrirse -->
+        <div class="env-contents" id="env-contents">
+          <div class="letter" id="letter">
+            <h1 class="letter__names">Emanuel<br/><span class="ampersand">&</span><br/>Victoria</h1>
+            <div class="letter__divider">
+              <svg viewBox="0 0 200 12"><line x1="0" y1="6" x2="80" y2="6" stroke="#c4b896" stroke-width="0.8"/><circle cx="100" cy="6" r="3" fill="#c4b896"/><line x1="120" y1="6" x2="200" y2="6" stroke="#c4b896" stroke-width="0.8"/></svg>
+            </div>
+            <p class="letter__date-num">10 · Octubre · 2026</p>
+            <p class="letter__time">1:30 PM</p>
+            <a href="invitation.html" class="letter__cta" id="view-invitation">Ver Invitación</a>
+          </div>
+        </div>
+
+        <!-- Cuerpo del sobre: tres pliegues -->
+        <div class="env-side env-side--left"></div>
+        <div class="env-side env-side--right"></div>
+        <div class="env-bottom"></div>
+
+        <!-- z-index 4: Vinilo -->
+        <div class="vinyl-wrapper" id="vinyl-wrapper">
+          <div class="vinyl" id="vinyl">
+            <div class="vinyl__grooves"></div>
+            <!-- Texto circular "Click to play" -->
+            <svg class="vinyl__circular-text" viewBox="0 0 100 100">
+              <defs>
+                <path id="circle-path" d="M 50,50 m -33,0 a 33,33 0 1,1 66,0 a 33,33 0 1,1 -66,0"/>
+              </defs>
+              <text><textPath href="#circle-path" startOffset="0%">· CLICK TO PLAY · CLICK TO PLAY ·</textPath></text>
+            </svg>
+            <div class="vinyl__label">
+              <p class="vinyl__label-title">V &amp; E</p>
+              <p class="vinyl__label-sub">Nuestra Canción</p>
+              <p class="vinyl__label-year">2026</p>
+            </div>
+            <div class="vinyl__hole"></div>
+          </div>
+          <p class="vinyl__cta" id="vinyl-cta">▶ Play</p>
+        </div>
+
+        <!-- z-index 10: Solapa superior -->
+        <div class="env-flap" id="env-flap"></div>
+
+        <!-- z-index 15: Sello de cera -->
+        <div class="wax-seal" id="wax-seal">
+          <img src="sello.png" alt="Sello V&amp;E" />
+        </div>
+
+      </div><!-- /.envelope -->
+    </div><!-- /.envelope-wrapper -->
+
+    <p class="landing__hint" id="landing-hint">Haz click en el sobre para abrirlo</p>
+
+    <audio id="bg-audio" loop>
+      <!-- <source src="music.mp3" type="audio/mpeg"> -->
+    </audio>
+  </section>
+
+  <div id="invitation-overlay" class="invitation-overlay" aria-hidden="true">
+    <iframe
+      id="invitation-frame"
+      src="invitation.html"
+      title="Invitacion de boda Victoria y Emanuel"
+      loading="eager"
+    ></iframe>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
