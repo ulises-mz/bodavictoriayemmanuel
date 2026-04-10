@@ -95,73 +95,142 @@ wrapper.addEventListener('keydown', (e) => {
   }
 });
 
-/* ── Transition letter to fullscreen invitation ── */
+/* ── Show invitation overlay (behind floral curtain) ── */
 function showInvitationOverlay() {
   if (!landingScene || !invitationOverlay) return;
-
   landingScene.classList.add('scene--collapsed');
   invitationOverlay.classList.add('visible');
+  invitationOverlay.style.pointerEvents = 'none'; // floral curtain stays above during transition
   invitationOverlay.setAttribute('aria-hidden', 'false');
-  document.body.style.overflow = 'hidden';
-  document.documentElement.style.overflow = 'hidden';
   document.body.classList.add('invitation-open');
   document.documentElement.classList.add('invitation-open');
 }
 
+/* ============================================================
+   FLORAL CURTAIN TRANSITION
+   ============================================================ */
+const curtainState = {
+  root: null,
+  openTimer: null,
+  cleanupTimer: null,
+};
+
+function clearCurtainTimers() {
+  clearTimeout(curtainState.openTimer);
+  clearTimeout(curtainState.cleanupTimer);
+}
+
+function cleanupFloralCurtain() {
+  clearCurtainTimers();
+
+  if (curtainState.root) {
+    curtainState.root.remove();
+    curtainState.root = null;
+  }
+
+  if (invitationOverlay) {
+    invitationOverlay.style.pointerEvents = 'auto';
+  }
+}
+
+function buildCurtainPiece(side, row, col, rows, cols) {
+  const piece = document.createElement('img');
+  piece.className = `floral-curtain__piece floral-curtain__piece--${side}`;
+
+  const sourceSet = side === 'left'
+    ? ['floral-1.png', 'floral-3.png', 'floral-2.png', 'floral-4.png']
+    : ['floral-2.png', 'floral-4.png', 'floral-1.png', 'floral-3.png'];
+
+  const sourceIndex = (row * cols) + col;
+  piece.src = sourceSet[sourceIndex % sourceSet.length];
+  piece.alt = '';
+  piece.setAttribute('aria-hidden', 'true');
+
+  const rowStep = 100 / rows;
+  const colStep = cols > 1 ? 80 / (cols - 1) : 0;
+  const y = ((row + 0.5) * rowStep) + ((Math.random() - 0.5) * rowStep * 0.42);
+  const staggerOffset = (row % 2) * (colStep * 0.42);
+  const xBase = (col * colStep) + staggerOffset;
+  const x = xBase + ((Math.random() - 0.5) * (colStep * 0.95 + 7));
+  const scale = 0.9 + (Math.random() * 0.52) + (((row % 3) - 1) * 0.04);
+  const tilt = (Math.random() - 0.5) * 16;
+  const delay = 140 + (col * 92) + (row * 24) + (Math.random() * 100);
+  const endX = (Math.random() - 0.5) * 24;
+  const startX = side === 'left' ? '-142%' : '142%';
+  const openX = side === 'left' ? '-170%' : '170%';
+  const baseRotation = side === 'left' ? -12 : 168;
+  const rotation = `${(baseRotation + tilt).toFixed(2)}deg`;
+
+  piece.style.top = `${Math.max(-8, Math.min(108, y)).toFixed(2)}%`;
+  piece.style.left = `${Math.max(-14, Math.min(94, x)).toFixed(2)}%`;
+  piece.style.setProperty('--scale', scale.toFixed(2));
+  piece.style.setProperty('--rotate', rotation);
+  piece.style.setProperty('--delay', `${Math.round(delay)}ms`);
+  piece.style.setProperty('--start-x', startX);
+  piece.style.setProperty('--end-x', `${endX.toFixed(2)}%`);
+  piece.style.setProperty('--open-x', openX);
+
+  return piece;
+}
+
+function createFloralCurtain() {
+  cleanupFloralCurtain();
+
+  const root = document.createElement('div');
+  root.className = 'floral-curtain';
+  root.innerHTML = `
+    <div class="floral-curtain__cover"></div>
+    <div class="floral-curtain__side floral-curtain__side--left"></div>
+    <div class="floral-curtain__side floral-curtain__side--right"></div>
+    <div class="floral-curtain__mist"></div>
+  `;
+
+  const leftSide = root.querySelector('.floral-curtain__side--left');
+  const rightSide = root.querySelector('.floral-curtain__side--right');
+  const rows = window.innerWidth <= 600 ? 8 : (window.innerWidth <= 960 ? 9 : 10);
+  const cols = window.innerWidth <= 600 ? 4 : (window.innerWidth <= 960 ? 5 : 6);
+
+  for (let row = 0; row < rows; row += 1) {
+    for (let col = 0; col < cols; col += 1) {
+      leftSide.appendChild(buildCurtainPiece('left', row, col, rows, cols));
+      rightSide.appendChild(buildCurtainPiece('right', row, col, rows, cols));
+    }
+  }
+
+  document.body.appendChild(root);
+  curtainState.root = root;
+
+  // Delay start slightly to guarantee the closed-state animation is visible.
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      root.classList.add('is-closing');
+    });
+  });
+
+  curtainState.openTimer = setTimeout(() => {
+    showInvitationOverlay();
+    root.classList.add('is-opening');
+  }, 1620);
+
+  curtainState.cleanupTimer = setTimeout(() => {
+    cleanupFloralCurtain();
+  }, 2780);
+}
+
+/* ── Transition ── */
 function transitionToInvitation(event) {
   event.preventDefault();
   event.stopPropagation();
-
   if (!opened || transitioning) return;
   transitioning = true;
 
   wrapper.classList.add('disassembling');
   if (landingScene) landingScene.classList.add('transitioning');
 
-  if (!invitationLetter) {
-    showInvitationOverlay();
-    return;
-  }
-
-  const rect = invitationLetter.getBoundingClientRect();
-  const clone = invitationLetter.cloneNode(true);
-  clone.id = 'letter-transition-clone';
-  clone.classList.add('letter-transition-clone');
-
-  const cloneCta = clone.querySelector('.letter__cta');
-  if (cloneCta) cloneCta.remove();
-
-  clone.style.left = `${rect.left}px`;
-  clone.style.top = `${rect.top}px`;
-  clone.style.width = `${rect.width}px`;
-  clone.style.height = `${rect.height}px`;
-
-  document.body.appendChild(clone);
-  invitationLetter.classList.add('letter--ghost');
-
-  const offsetX = (window.innerWidth / 2) - (rect.left + rect.width / 2);
-  const offsetY = (window.innerHeight / 2) - (rect.top + rect.height / 2);
-  const scaleX = window.innerWidth / rect.width;
-  const scaleY = window.innerHeight / rect.height;
-
-  requestAnimationFrame(() => {
-    clone.classList.add('animating');
-    clone.style.transform = `translate(${offsetX}px, ${offsetY}px) scale(${scaleX}, ${scaleY})`;
-    clone.style.borderRadius = '0';
-    clone.style.boxShadow = '0 22px 70px rgba(0, 0, 0, 0.26)';
-  });
-
+  // Floral curtain closes, invitation is shown behind, then curtain opens.
   setTimeout(() => {
-    showInvitationOverlay();
-  }, 760);
-
-  setTimeout(() => {
-    clone.style.opacity = '0';
-  }, 980);
-
-  setTimeout(() => {
-    clone.remove();
-  }, 1320);
+    createFloralCurtain();
+  }, 260);
 }
 
 if (viewInvitation) {

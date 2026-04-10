@@ -1030,6 +1030,46 @@ main {
       0 0 24px var(--mobile-text-glow-2);
   }
 
+  .hero__kicker,
+  .hero__names,
+  .hero__line,
+  .hero__date-wrap {
+    position: relative;
+    z-index: 0;
+    isolation: isolate;
+  }
+
+  .hero__kicker::before,
+  .hero__names::before,
+  .hero__line::before,
+  .hero__date-wrap::before {
+    content: '';
+    position: absolute;
+    inset: -0.28rem -0.82rem;
+    z-index: -1;
+    pointer-events: none;
+    border-radius: 0.95rem;
+    background: radial-gradient(
+      circle at 50% 50%,
+      rgba(255, 255, 255, 0.84) 0%,
+      rgba(255, 255, 255, 0.54) 46%,
+      rgba(255, 255, 255, 0.1) 100%
+    );
+    filter: blur(9px);
+  }
+
+  .hero__names::before {
+    inset: -0.42rem -1rem;
+    border-radius: 1.2rem;
+    background: radial-gradient(
+      circle at 50% 50%,
+      rgba(255, 255, 255, 0.9) 0%,
+      rgba(255, 255, 255, 0.62) 44%,
+      rgba(255, 255, 255, 0.14) 100%
+    );
+    filter: blur(11px);
+  }
+
   .section__lead,
   .route__hint,
   .memory-step__copy,
