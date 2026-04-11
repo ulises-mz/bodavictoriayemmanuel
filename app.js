@@ -111,11 +111,13 @@ function showInvitationOverlay() {
    ============================================================ */
 const curtainState = {
   root: null,
+  revealTimer: null,
   openTimer: null,
   cleanupTimer: null,
 };
 
 function clearCurtainTimers() {
+  clearTimeout(curtainState.revealTimer);
   clearTimeout(curtainState.openTimer);
   clearTimeout(curtainState.cleanupTimer);
 }
@@ -133,7 +135,10 @@ function cleanupFloralCurtain() {
   }
 }
 
-function buildCurtainPiece(side, row, col, rows, cols) {
+function buildCurtainPiece(side, row, col, rows, cols, options = {}) {
+  const isLite = Boolean(options.isLite);
+  const isFillLayer = Boolean(options.isFillLayer);
+  const viewportMin = Math.min(window.innerWidth, window.innerHeight);
   const piece = document.createElement('img');
   piece.className = `floral-curtain__piece floral-curtain__piece--${side}`;
 
@@ -147,30 +152,44 @@ function buildCurtainPiece(side, row, col, rows, cols) {
   piece.setAttribute('aria-hidden', 'true');
 
   const rowStep = 100 / rows;
-  const colStep = cols > 1 ? 80 / (cols - 1) : 0;
-  const y = ((row + 0.5) * rowStep) + ((Math.random() - 0.5) * rowStep * 0.42);
-  const staggerOffset = (row % 2) * (colStep * 0.42);
-  const xBase = (col * colStep) + staggerOffset;
-  const x = xBase + ((Math.random() - 0.5) * (colStep * 0.95 + 7));
-  const scale = 0.9 + (Math.random() * 0.52) + (((row % 3) - 1) * 0.04);
-  const tilt = (Math.random() - 0.5) * 16;
-  const delay = 140 + (col * 92) + (row * 24) + (Math.random() * 100);
-  const endX = (Math.random() - 0.5) * 24;
-  const startX = side === 'left' ? '-142%' : '142%';
-  const openX = side === 'left' ? '-170%' : '170%';
+  const colStep = 100 / cols;
+  const layerOffset = isFillLayer ? 0.5 : 0;
+  const y = ((row + 0.5) * rowStep) + ((Math.random() - 0.5) * rowStep * 0.5);
+  const x = ((col + 0.5 + layerOffset) * colStep) + ((Math.random() - 0.5) * colStep * 0.62);
+  const scale = isFillLayer
+    ? (isLite ? 0.72 + Math.random() * 0.26 : 0.8 + Math.random() * 0.3)
+    : (isLite ? 0.86 + Math.random() * 0.28 : 0.98 + Math.random() * 0.34);
   const baseRotation = side === 'left' ? -12 : 168;
+  const tilt = (Math.random() - 0.5) * 18;
+  const opacity = isFillLayer
+    ? (isLite ? 0.5 : 0.68)
+    : (isLite ? 0.74 : 0.9);
+  const baseSize = viewportMin * (isLite ? 0.26 : 0.31);
+  const sizeMultiplier = isFillLayer ? (0.76 + Math.random() * 0.25) : (0.9 + Math.random() * 0.35);
+  const sizePx = Math.max(120, Math.min(420, baseSize * sizeMultiplier));
   const rotation = `${(baseRotation + tilt).toFixed(2)}deg`;
 
-  piece.style.top = `${Math.max(-8, Math.min(108, y)).toFixed(2)}%`;
-  piece.style.left = `${Math.max(-14, Math.min(94, x)).toFixed(2)}%`;
+  piece.style.top = `${Math.max(-6, Math.min(106, y)).toFixed(2)}%`;
+  piece.style.left = `${Math.max(-8, Math.min(108, x)).toFixed(2)}%`;
+  piece.style.setProperty('--piece-size', `${Math.round(sizePx)}px`);
   piece.style.setProperty('--scale', scale.toFixed(2));
   piece.style.setProperty('--rotate', rotation);
-  piece.style.setProperty('--delay', `${Math.round(delay)}ms`);
-  piece.style.setProperty('--start-x', startX);
-  piece.style.setProperty('--end-x', `${endX.toFixed(2)}%`);
-  piece.style.setProperty('--open-x', openX);
+  piece.style.setProperty('--piece-opacity', opacity.toFixed(2));
 
   return piece;
+}
+
+function getCurtainDensityConfig(isLite) {
+  const areaFactor = Math.max(0.8, Math.min(2.2, (window.innerWidth * window.innerHeight) / (1280 * 720)));
+  const baseRows = Math.round((isLite ? 4 : 5) + (areaFactor * 1.25));
+  const baseCols = Math.round((isLite ? 3 : 4) + (areaFactor * 1.15));
+
+  return {
+    baseRows,
+    baseCols,
+    fillRows: Math.max(3, baseRows - 1),
+    fillCols: Math.max(2, baseCols - 1),
+  };
 }
 
 function createFloralCurtain() {
@@ -178,6 +197,12 @@ function createFloralCurtain() {
 
   const root = document.createElement('div');
   root.className = 'floral-curtain';
+
+  const isLite = window.innerWidth <= 820 || window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (isLite) {
+    root.classList.add('floral-curtain--lite');
+  }
+
   root.innerHTML = `
     <div class="floral-curtain__cover"></div>
     <div class="floral-curtain__side floral-curtain__side--left"></div>
@@ -187,13 +212,19 @@ function createFloralCurtain() {
 
   const leftSide = root.querySelector('.floral-curtain__side--left');
   const rightSide = root.querySelector('.floral-curtain__side--right');
-  const rows = window.innerWidth <= 600 ? 8 : (window.innerWidth <= 960 ? 9 : 10);
-  const cols = window.innerWidth <= 600 ? 4 : (window.innerWidth <= 960 ? 5 : 6);
+  const density = getCurtainDensityConfig(isLite);
 
-  for (let row = 0; row < rows; row += 1) {
-    for (let col = 0; col < cols; col += 1) {
-      leftSide.appendChild(buildCurtainPiece('left', row, col, rows, cols));
-      rightSide.appendChild(buildCurtainPiece('right', row, col, rows, cols));
+  for (let row = 0; row < density.baseRows; row += 1) {
+    for (let col = 0; col < density.baseCols; col += 1) {
+      leftSide.appendChild(buildCurtainPiece('left', row, col, density.baseRows, density.baseCols, { isLite }));
+      rightSide.appendChild(buildCurtainPiece('right', row, col, density.baseRows, density.baseCols, { isLite }));
+    }
+  }
+
+  for (let row = 0; row < density.fillRows; row += 1) {
+    for (let col = 0; col < density.fillCols; col += 1) {
+      leftSide.appendChild(buildCurtainPiece('left', row, col, density.fillRows, density.fillCols, { isLite, isFillLayer: true }));
+      rightSide.appendChild(buildCurtainPiece('right', row, col, density.fillRows, density.fillCols, { isLite, isFillLayer: true }));
     }
   }
 
@@ -207,14 +238,21 @@ function createFloralCurtain() {
     });
   });
 
-  curtainState.openTimer = setTimeout(() => {
+  const revealDelay = isLite ? 620 : 760;
+  const openDelay = isLite ? 860 : 980;
+  const cleanupDelay = isLite ? 1520 : 1720;
+
+  curtainState.revealTimer = setTimeout(() => {
     showInvitationOverlay();
+  }, revealDelay);
+
+  curtainState.openTimer = setTimeout(() => {
     root.classList.add('is-opening');
-  }, 1620);
+  }, openDelay);
 
   curtainState.cleanupTimer = setTimeout(() => {
     cleanupFloralCurtain();
-  }, 2780);
+  }, cleanupDelay);
 }
 
 /* ── Transition ── */

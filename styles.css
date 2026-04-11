@@ -749,76 +749,54 @@ body.invitation-open {
   z-index: 1500;
   overflow: hidden;
   pointer-events: none;
-  background: radial-gradient(circle at center, rgba(247, 242, 232, 0.22) 0%, rgba(247, 242, 232, 0) 72%);
+  background: radial-gradient(circle at center, rgba(247, 242, 232, 0.12) 0%, rgba(247, 242, 232, 0) 74%);
 }
 
 .floral-curtain__cover {
   position: absolute;
   inset: 0;
   opacity: 0;
-  transition: opacity 0.64s ease;
+  transition: opacity 0.32s ease;
   background:
-    radial-gradient(ellipse at 50% 48%, rgba(247, 242, 232, 0.82) 0%, rgba(247, 242, 232, 0.2) 64%, rgba(247, 242, 232, 0) 100%),
-    radial-gradient(ellipse at 10% 50%, rgba(45, 74, 30, 0.09) 0%, rgba(45, 74, 30, 0) 78%),
-    radial-gradient(ellipse at 90% 50%, rgba(45, 74, 30, 0.09) 0%, rgba(45, 74, 30, 0) 78%),
-    linear-gradient(to bottom, rgba(247, 242, 232, 0.22), rgba(247, 242, 232, 0.06));
+    radial-gradient(ellipse at 50% 48%, rgba(247, 242, 232, 0.74) 0%, rgba(247, 242, 232, 0.12) 66%, rgba(247, 242, 232, 0) 100%),
+    linear-gradient(to bottom, rgba(247, 242, 232, 0.14), rgba(247, 242, 232, 0.03));
 }
 
 .floral-curtain__side {
   position: absolute;
   top: 0;
-  width: 64%;
+  width: 72%;
   height: 100%;
-  transition: transform 1.04s cubic-bezier(0.24, 0.74, 0.16, 1);
+  contain: paint;
+  transition: transform 0.82s cubic-bezier(0.25, 0.8, 0.2, 1);
 }
 
 .floral-curtain__side::before {
   content: '';
   position: absolute;
   inset: 0;
-  opacity: 0.9;
+  opacity: 0.56;
+  background: linear-gradient(to bottom, rgba(45, 74, 30, 0.08), rgba(247, 242, 232, 0.03) 50%, rgba(45, 74, 30, 0.06));
 }
 
 .floral-curtain__side--left {
   left: 0;
-  transform: translateX(-106%);
-}
-
-.floral-curtain__side--left::before {
-  background: linear-gradient(
-    to right,
-    rgba(61, 97, 40, 0.14) 0%,
-    rgba(61, 97, 40, 0.08) 34%,
-    rgba(61, 97, 40, 0) 82%
-  );
+  transform: translateX(-104%);
 }
 
 .floral-curtain__side--right {
   right: 0;
-  transform: translateX(106%);
-}
-
-.floral-curtain__side--right::before {
-  background: linear-gradient(
-    to left,
-    rgba(61, 97, 40, 0.14) 0%,
-    rgba(61, 97, 40, 0.08) 34%,
-    rgba(61, 97, 40, 0) 82%
-  );
+  transform: translateX(104%);
 }
 
 .floral-curtain__piece {
   position: absolute;
-  width: clamp(170px, 24vw, 420px);
+  width: var(--piece-size, clamp(180px, 24vw, 420px));
   height: auto;
-  opacity: 0;
+  opacity: var(--piece-opacity, 0.88);
   transform-origin: center center;
-  filter: drop-shadow(0 12px 24px rgba(22, 33, 17, 0.28));
-  transform: translate(var(--start-x, -142%), -50%) scale(var(--scale, 1)) rotate(var(--rotate, 0deg));
-  transition:
-    opacity 0.4s ease var(--delay, 0ms),
-    transform 1.04s cubic-bezier(0.23, 0.77, 0.24, 1) var(--delay, 0ms);
-  will-change: transform, opacity;
+  filter: drop-shadow(0 6px 10px rgba(22, 33, 17, 0.12));
+  transform: translate(-50%, -50%) scale(var(--scale, 1)) rotate(var(--rotate, 0deg));
 }
 
 .floral-curtain__piece--left {
@@ -838,41 +816,31 @@ body.invitation-open {
 }
 
 .floral-curtain.is-closing .floral-curtain__side--left {
-  transform: translateX(-4%);
+  transform: translateX(-2%);
 }
 
 .floral-curtain.is-closing .floral-curtain__side--right {
-  transform: translateX(4%);
-}
-
-.floral-curtain.is-closing .floral-curtain__piece {
-  opacity: 0.97;
-  transform: translate(var(--end-x, 0%), -50%) scale(var(--scale, 1)) rotate(var(--rotate, 0deg));
+  transform: translateX(2%);
 }
 
 .floral-curtain.is-closing .floral-curtain__cover {
-  opacity: 0.8;
+  opacity: 0.58;
 }
 
 .floral-curtain.is-closing .floral-curtain__mist {
-  opacity: 1;
+  opacity: 0.82;
 }
 
 .floral-curtain.is-opening .floral-curtain__side {
-  transition-duration: 0.78s;
+  transition-duration: 0.62s;
 }
 
 .floral-curtain.is-opening .floral-curtain__side--left {
-  transform: translateX(-112%);
+  transform: translateX(-108%);
 }
 
 .floral-curtain.is-opening .floral-curtain__side--right {
-  transform: translateX(112%);
-}
-
-.floral-curtain.is-opening .floral-curtain__piece {
-  opacity: 0.08;
-  transform: translate(var(--open-x, 170%), -50%) scale(var(--scale, 1)) rotate(var(--rotate, 0deg));
+  transform: translateX(108%);
 }
 
 .floral-curtain.is-opening .floral-curtain__cover {
@@ -880,7 +848,35 @@ body.invitation-open {
 }
 
 .floral-curtain.is-opening .floral-curtain__mist {
-  opacity: 0.08;
+  opacity: 0.04;
+}
+
+.floral-curtain--lite .floral-curtain__side {
+  width: 66%;
+}
+
+.floral-curtain--lite .floral-curtain__cover {
+  transition-duration: 0.26s;
+  background:
+    radial-gradient(ellipse at 50% 48%, rgba(247, 242, 232, 0.62) 0%, rgba(247, 242, 232, 0.08) 70%, rgba(247, 242, 232, 0) 100%),
+    linear-gradient(to bottom, rgba(247, 242, 232, 0.14), rgba(247, 242, 232, 0.03));
+}
+
+.floral-curtain--lite .floral-curtain__side::before {
+  opacity: 0.34;
+}
+
+.floral-curtain--lite .floral-curtain__piece {
+  width: var(--piece-size, clamp(130px, 22vw, 260px));
+  filter: none;
+}
+
+.floral-curtain--lite.is-closing .floral-curtain__cover {
+  opacity: 0.42;
+}
+
+.floral-curtain--lite .floral-curtain__mist {
+  background: radial-gradient(circle at center, rgba(255, 252, 246, 0.45) 0%, rgba(255, 252, 246, 0) 70%);
 }
 
 /* ============================================================
