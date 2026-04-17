@@ -13,15 +13,64 @@ const vinylWrapper = document.getElementById('vinyl-wrapper');
 const vinylEl      = document.getElementById('vinyl');
 const vinylCta     = document.getElementById('vinyl-cta');
 const audio        = document.getElementById('bg-audio');
+const vinylCircleText = document.querySelector('.vinyl__circular-text textPath');
 
 let opened  = false;
 let playing = false;
 let transitioning = false;
 
+function syncVinylUi() {
+  if (vinylEl) {
+    vinylEl.classList.toggle('spinning', playing);
+  }
+
+  if (vinylCta) {
+    vinylCta.textContent = playing ? '■ Stop' : '▶ Play';
+  }
+
+  if (vinylCircleText) {
+    vinylCircleText.textContent = playing
+      ? '· CLICK TO STOP · CLICK TO STOP ·'
+      : '· CLICK TO PLAY · CLICK TO PLAY ·';
+  }
+}
+
+function playSong() {
+  if (!audio) return;
+
+  const playPromise = audio.play();
+  if (playPromise && typeof playPromise.catch === 'function') {
+    playPromise.catch(() => {
+      playing = false;
+      syncVinylUi();
+    });
+  }
+}
+
+function startSong() {
+  playing = true;
+  syncVinylUi();
+  playSong();
+}
+
+function stopSong() {
+  if (audio) {
+    audio.pause();
+    audio.currentTime = 0;
+  }
+
+  playing = false;
+  syncVinylUi();
+}
+
+syncVinylUi();
+
 /* ── Open envelope ── */
 function openEnvelope() {
   if (opened) return;
   opened = true;
+
+  startSong();
 
   hint.classList.add('hidden');
   const title = document.querySelector('.landing__title');
@@ -275,22 +324,15 @@ if (viewInvitation) {
   viewInvitation.addEventListener('click', transitionToInvitation);
 }
 
-/* ── Vinyl play/pause ── */
+/* ── Vinyl play/stop ── */
 vinylWrapper.addEventListener('click', (e) => {
   if (!opened) return;
   e.stopPropagation();
-  playing = !playing;
 
   if (playing) {
-    vinylEl.classList.add('spinning');
-    vinylCta.textContent = '⏸ Pause';
-    if (audio.src && audio.src !== window.location.href) {
-      audio.play().catch(() => {});
-    }
+    stopSong();
   } else {
-    vinylEl.classList.remove('spinning');
-    vinylCta.textContent = '▶ Play';
-    audio.pause();
+    startSong();
   }
 });
 

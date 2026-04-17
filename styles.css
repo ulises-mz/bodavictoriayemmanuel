@@ -749,12 +749,30 @@ body.invitation-open {
   z-index: 1500;
   overflow: hidden;
   pointer-events: none;
+  isolation: isolate;
   background: radial-gradient(circle at center, rgba(247, 242, 232, 0.12) 0%, rgba(247, 242, 232, 0) 74%);
+}
+
+.floral-curtain::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.28s ease;
+  background: radial-gradient(
+    ellipse at 50% 50%,
+    rgba(247, 242, 232, 0.3) 0%,
+    rgba(247, 242, 232, 0.14) 32%,
+    rgba(247, 242, 232, 0) 72%
+  );
 }
 
 .floral-curtain__cover {
   position: absolute;
   inset: 0;
+  z-index: 0;
   opacity: 0;
   transition: opacity 0.32s ease;
   background:
@@ -767,6 +785,7 @@ body.invitation-open {
   top: 0;
   width: 72%;
   height: 100%;
+  z-index: 2;
   contain: paint;
   transition: transform 0.82s cubic-bezier(0.25, 0.8, 0.2, 1);
 }
@@ -775,18 +794,21 @@ body.invitation-open {
   content: '';
   position: absolute;
   inset: 0;
-  opacity: 0.56;
-  background: linear-gradient(to bottom, rgba(45, 74, 30, 0.08), rgba(247, 242, 232, 0.03) 50%, rgba(45, 74, 30, 0.06));
+  opacity: 0;
 }
 
 .floral-curtain__side--left {
   left: 0;
   transform: translateX(-104%);
+  -webkit-mask-image: linear-gradient(to right, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 1) 86%, rgba(0, 0, 0, 0) 100%);
+  mask-image: linear-gradient(to right, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 1) 86%, rgba(0, 0, 0, 0) 100%);
 }
 
 .floral-curtain__side--right {
   right: 0;
   transform: translateX(104%);
+  -webkit-mask-image: linear-gradient(to left, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 1) 86%, rgba(0, 0, 0, 0) 100%);
+  mask-image: linear-gradient(to left, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 1) 86%, rgba(0, 0, 0, 0) 100%);
 }
 
 .floral-curtain__piece {
@@ -810,17 +832,22 @@ body.invitation-open {
 .floral-curtain__mist {
   position: absolute;
   inset: 0;
+  z-index: 3;
   opacity: 0;
   transition: opacity 0.66s ease;
   background: radial-gradient(circle at center, rgba(255, 252, 246, 0.78) 0%, rgba(255, 252, 246, 0) 72%);
 }
 
 .floral-curtain.is-closing .floral-curtain__side--left {
-  transform: translateX(-2%);
+  transform: translateX(0);
 }
 
 .floral-curtain.is-closing .floral-curtain__side--right {
-  transform: translateX(2%);
+  transform: translateX(0);
+}
+
+.floral-curtain.is-closing::after {
+  opacity: 0.68;
 }
 
 .floral-curtain.is-closing .floral-curtain__cover {
@@ -841,6 +868,10 @@ body.invitation-open {
 
 .floral-curtain.is-opening .floral-curtain__side--right {
   transform: translateX(108%);
+}
+
+.floral-curtain.is-opening::after {
+  opacity: 0;
 }
 
 .floral-curtain.is-opening .floral-curtain__cover {

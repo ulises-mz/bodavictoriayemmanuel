@@ -40,7 +40,7 @@ if (toTopButton) {
 const textureStack = document.getElementById('texture-stack');
 const floralFlow = document.getElementById('floral-flow');
 const floralSources = ['floral-1.png', 'floral-2.png', 'floral-3.png', 'floral-4.png'];
-const textureAspectRatio = 768 / 1408;
+let textureAspectRatio = 768 / 1408;
 
 let floralPlan = [];
 let renderedFlorals = [];
@@ -70,30 +70,28 @@ function getBackgroundCanvasHeight() {
 
 function getTextureTileHeight() {
   const widthBasedHeight = Math.round(window.innerWidth * textureAspectRatio);
-
-  if (window.innerWidth <= 680) {
-    return Math.max(180, widthBasedHeight);
-  }
-
-  return Math.max(Math.round(window.innerHeight * 0.88), widthBasedHeight);
+  return Math.max(180, widthBasedHeight);
 }
 
 function buildTextureStack() {
   if (!textureStack) return;
 
   const tileHeight = Math.max(1, getTextureTileHeight());
+  const tileOverlap = window.innerWidth <= 680 ? 12 : 8;
+  const tileStep = Math.max(1, tileHeight - tileOverlap);
   const canvasHeight = getBackgroundCanvasHeight();
-  const tileCount = Math.max(1, Math.ceil(canvasHeight / tileHeight) + 1);
+  const tileCount = Math.max(2, Math.ceil((canvasHeight + tileOverlap) / tileStep) + 1);
 
   textureStack.style.setProperty('--texture-height', `${canvasHeight}px`);
-  textureStack.style.setProperty('--texture-tile-height', `${tileHeight}px`);
+  textureStack.style.setProperty('--texture-tile-height', `${tileHeight + tileOverlap}px`);
   textureStack.style.setProperty('--texture-tile-opacity', window.innerWidth <= 680 ? '0.48' : '0.56');
   textureStack.innerHTML = '';
 
   for (let i = 0; i < tileCount; i += 1) {
     const tile = document.createElement('div');
     tile.className = 'texture-stack__tile';
-    tile.style.top = `${i * tileHeight}px`;
+    tile.style.top = `${Math.round(i * tileStep)}px`;
+    tile.style.height = `${tileHeight + tileOverlap}px`;
     textureStack.appendChild(tile);
   }
 }
@@ -518,3 +516,13 @@ function scheduleScrollWork() {
 
 window.addEventListener('scroll', scheduleScrollWork, { passive: true });
 scheduleScrollWork();
+
+const textureProbe = new Image();
+textureProbe.addEventListener('load', () => {
+  if (!textureProbe.naturalWidth || !textureProbe.naturalHeight) return;
+
+  textureAspectRatio = textureProbe.naturalHeight / textureProbe.naturalWidth;
+  initializeGeneratedBackground();
+  scheduleScrollWork();
+});
+textureProbe.src = 'textura-2.png';

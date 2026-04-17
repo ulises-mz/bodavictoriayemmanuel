@@ -53,7 +53,7 @@ body {
   height: var(--texture-tile-height, 100vh);
   background-image: url('textura-2.png');
   background-position: center top;
-  background-repeat: no-repeat;
+  background-repeat: repeat-y;
   background-size: 100% auto;
   opacity: var(--texture-tile-opacity, 0.56);
 }
@@ -61,43 +61,25 @@ body {
 .texture-stack::before {
   content: '';
   position: absolute;
-  top: 0;
-  bottom: 0;
-  left: 50%;
-  width: var(--content-strip-width);
-  transform: translateX(-50%);
+  inset: 0;
   z-index: 2;
   pointer-events: none;
-  background: rgba(247, 244, 238, 0.48);
-  backdrop-filter: blur(14px) saturate(0.9);
-  -webkit-backdrop-filter: blur(14px) saturate(0.9);
-  mask-image: linear-gradient(
-    to right,
-    rgba(0, 0, 0, 0) 0%,
-    rgba(0, 0, 0, 1) 25%,
-    rgba(0, 0, 0, 1) 75%,
-    rgba(0, 0, 0, 0) 100%
-  );
-  -webkit-mask-image: linear-gradient(
-    to right,
-    rgba(0, 0, 0, 0) 0%,
-    rgba(0, 0, 0, 1) 25%,
-    rgba(0, 0, 0, 1) 75%,
-    rgba(0, 0, 0, 0) 100%
+  background: radial-gradient(
+    ellipse at 50% 46%,
+    rgba(247, 244, 238, 0.18) 0%,
+    rgba(247, 244, 238, 0.07) 52%,
+    rgba(247, 244, 238, 0) 100%
   );
 }
 
 @supports not ((-webkit-backdrop-filter: blur(1px)) or (backdrop-filter: blur(1px))) {
   .texture-stack::before {
-    background: linear-gradient(
-      to right,
-      rgba(247, 244, 238, 0) 0%,
-      rgba(247, 244, 238, 0.52) 25%,
-      rgba(247, 244, 238, 0.52) 75%,
+    background: radial-gradient(
+      ellipse at 50% 46%,
+      rgba(247, 244, 238, 0.16) 0%,
+      rgba(247, 244, 238, 0.06) 52%,
       rgba(247, 244, 238, 0) 100%
     );
-    mask-image: none;
-    -webkit-mask-image: none;
   }
 }
 
