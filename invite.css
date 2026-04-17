@@ -16,7 +16,7 @@
   --line: rgba(189, 169, 125, 0.34);
   --white-glass: rgba(255, 255, 255, 0.46);
   --shadow: 0 18px 42px rgba(33, 27, 19, 0.14);
-  --content-strip-width: clamp(820px, 84vw, 1280px);
+  --content-strip-width: clamp(980px, 94vw, 1560px);
   --mobile-text-glow-1: rgba(255, 255, 255, 0.9);
   --mobile-text-glow-2: rgba(255, 255, 255, 0.58);
 }
@@ -78,15 +78,15 @@ body {
   mask-image: linear-gradient(
     to right,
     rgba(0, 0, 0, 0) 0%,
-    rgba(0, 0, 0, 1) 22%,
-    rgba(0, 0, 0, 1) 78%,
+    rgba(0, 0, 0, 1) 14%,
+    rgba(0, 0, 0, 1) 86%,
     rgba(0, 0, 0, 0) 100%
   );
   -webkit-mask-image: linear-gradient(
     to right,
     rgba(0, 0, 0, 0) 0%,
-    rgba(0, 0, 0, 1) 22%,
-    rgba(0, 0, 0, 1) 78%,
+    rgba(0, 0, 0, 1) 14%,
+    rgba(0, 0, 0, 1) 86%,
     rgba(0, 0, 0, 0) 100%
   );
 }
@@ -96,8 +96,8 @@ body {
     background: linear-gradient(
       to right,
       rgba(247, 244, 238, 0) 0%,
-      rgba(247, 244, 238, 0.44) 22%,
-      rgba(247, 244, 238, 0.44) 78%,
+      rgba(247, 244, 238, 0.44) 14%,
+      rgba(247, 244, 238, 0.44) 86%,
       rgba(247, 244, 238, 0) 100%
     );
     mask-image: none;
@@ -107,14 +107,14 @@ body {
 
 @media (max-width: 900px) {
   .texture-stack::before {
-    width: 100vw;
+    width: 108vw;
     -webkit-backdrop-filter: blur(8px) saturate(0.9);
     backdrop-filter: blur(8px) saturate(0.9);
     background: linear-gradient(
       to right,
       rgba(247, 244, 238, 0) 0%,
-      rgba(247, 244, 238, 0.34) 18%,
-      rgba(247, 244, 238, 0.34) 82%,
+      rgba(247, 244, 238, 0.34) 10%,
+      rgba(247, 244, 238, 0.34) 90%,
       rgba(247, 244, 238, 0) 100%
     );
   }
