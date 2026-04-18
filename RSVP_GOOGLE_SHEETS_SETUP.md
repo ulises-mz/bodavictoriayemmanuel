@@ -13,7 +13,7 @@
 
 ## Credenciales del panel
 - Correo inicial: novios@boda.local
-- Contrasena inicial: cambia-esta-clave
+- Contrasena inicial: VictoriaEmanuel2026!
 
 Las puedes cambiar en panel-login.js, dentro de la constante PANEL_CREDENTIALS.
 
