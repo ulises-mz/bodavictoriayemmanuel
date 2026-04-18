@@ -1,6 +1,6 @@
 const PANEL_SESSION_KEY = 'ev-couple-panel-auth';
 const PANEL_CREDENTIALS = {
-  email: 'novios@boda.local',
+  email: 'novios@boda.com',
   password: 'VictoriaEmanuel2026!',
 };
 const PANEL_DASHBOARD_ROUTE = 'panel-novios.html';
