@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&family=Sora:wght@400;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="panel-novios.css?v=20260418c" />
+  <link rel="stylesheet" href="panel-novios.css?v=20260418e" />
 </head>
 <body>
   <div class="dashboard-bg dashboard-bg--a" aria-hidden="true"></div>
@@ -147,6 +147,42 @@
                 </div>
 
                 <div id="table-map" class="table-map" aria-label="Croquis de mesas"></div>
+
+                <div id="table-context-menu" class="table-context-menu" hidden>
+                  <p class="table-context-menu__title">Editar mesa</p>
+
+                  <label class="table-context-menu__field">
+                    <span>Nombre</span>
+                    <input id="table-context-label" type="text" maxlength="40" />
+                  </label>
+
+                  <label class="table-context-menu__field">
+                    <span>Capacidad</span>
+                    <input id="table-context-capacity" type="number" min="1" max="60" />
+                  </label>
+
+                  <label class="table-context-menu__field">
+                    <span>Tamano (%)</span>
+                    <input id="table-context-size" type="number" min="60" max="200" step="5" />
+                  </label>
+
+                  <label class="table-context-menu__field">
+                    <span>Relacion (X:Y)</span>
+                    <select id="table-context-ratio">
+                      <option value="1:1">1:1</option>
+                      <option value="1:2">1:2</option>
+                      <option value="2:1">2:1</option>
+                      <option value="3:2">3:2</option>
+                      <option value="2:3">2:3</option>
+                    </select>
+                  </label>
+
+                  <div class="table-context-menu__actions">
+                    <button type="button" id="table-context-save" class="btn btn--mini btn--primary">Guardar</button>
+                    <button type="button" id="table-context-delete" class="btn btn--mini btn--danger-soft">Eliminar</button>
+                    <button type="button" id="table-context-cancel" class="btn btn--mini btn--soft">Cancelar</button>
+                  </div>
+                </div>
               </section>
             </div>
           </section>
@@ -168,36 +204,6 @@
 
         <p id="table-plan-status" class="table-plan-status" hidden></p>
         <div id="table-plan-output" class="table-plan-output"></div>
-
-        <div id="table-context-menu" class="table-context-menu" hidden>
-          <p class="table-context-menu__title">Editar mesa</p>
-
-          <label class="table-context-menu__field">
-            <span>Nombre</span>
-            <input id="table-context-label" type="text" maxlength="40" />
-          </label>
-
-          <label class="table-context-menu__field">
-            <span>Capacidad</span>
-            <input id="table-context-capacity" type="number" min="1" max="60" />
-          </label>
-
-          <label class="table-context-menu__field">
-            <span>Tamano (%)</span>
-            <input id="table-context-size" type="number" min="60" max="200" step="5" />
-          </label>
-
-          <label class="table-context-menu__field">
-            <span>Relacion (X:Y)</span>
-            <input id="table-context-ratio" type="text" maxlength="9" placeholder="1:1" />
-          </label>
-
-          <div class="table-context-menu__actions">
-            <button type="button" id="table-context-save" class="btn btn--mini btn--primary">Guardar</button>
-            <button type="button" id="table-context-delete" class="btn btn--mini btn--danger-soft">Eliminar</button>
-            <button type="button" id="table-context-cancel" class="btn btn--mini btn--soft">Cancelar</button>
-          </div>
-        </div>
       </article>
     </section>
 
@@ -210,6 +216,6 @@
     </section>
   </main>
 
-  <script src="panel-novios.js?v=20260418d"></script>
+  <script src="panel-novios.js?v=20260418e"></script>
 </body>
 </html>

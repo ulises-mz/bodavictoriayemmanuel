@@ -2,6 +2,10 @@ const PANEL_SESSION_KEY = 'ev-couple-panel-auth';
 const PANEL_LOGIN_ROUTE = 'panel-login.html';
 const RSVP_STORAGE_KEY = 'ev-rsvp-records-v1';
 const TABLE_PLAN_STORAGE_KEY = 'ev-table-plan-v1';
+const TABLE_RATIO_PRESETS = ['1:1', '1:2', '2:1', '3:2', '2:3'];
+const MIN_MAP_ZOOM = 0.2;
+const MAX_MAP_ZOOM = 4;
+const MAP_GRID_BASE_SIZE = 24;
 
 if (sessionStorage.getItem(PANEL_SESSION_KEY) !== '1') {
   window.location.href = PANEL_LOGIN_ROUTE;
@@ -241,6 +245,40 @@ function parseTableRatio(value) {
   };
 }
 
+function ensureRatioSelectValue(selectElement, ratioValue) {
+  if (!(selectElement instanceof HTMLSelectElement)) {
+    return;
+  }
+
+  const normalizedRatio = parseTableRatio(ratioValue).label;
+  const hasOption = Array.from(selectElement.options).some((option) => option.value === normalizedRatio);
+
+  if (!hasOption) {
+    const customOption = document.createElement('option');
+    customOption.value = normalizedRatio;
+    customOption.textContent = `${normalizedRatio} (Personalizada)`;
+    selectElement.appendChild(customOption);
+  }
+
+  selectElement.value = normalizedRatio;
+}
+
+function createRatioSelect(className, tableId, ratioValue) {
+  const select = document.createElement('select');
+  select.className = className;
+  select.dataset.tableId = tableId;
+
+  TABLE_RATIO_PRESETS.forEach((preset) => {
+    const option = document.createElement('option');
+    option.value = preset;
+    option.textContent = preset;
+    select.appendChild(option);
+  });
+
+  ensureRatioSelectValue(select, ratioValue);
+  return select;
+}
+
 function getDefaultMapView() {
   return {
     zoom: 1,
@@ -250,14 +288,14 @@ function getDefaultMapView() {
 }
 
 function sanitizeMapView(value) {
-  const zoom = clamp(Number(value?.zoom || 1), 0.45, 2.8);
+  const zoom = clamp(Number(value?.zoom || 1), MIN_MAP_ZOOM, MAX_MAP_ZOOM);
   const panX = Number(value?.panX);
   const panY = Number(value?.panY);
 
   return {
     zoom,
-    panX: Number.isFinite(panX) ? clamp(panX, -2400, 2400) : 0,
-    panY: Number.isFinite(panY) ? clamp(panY, -2400, 2400) : 0,
+    panX: Number.isFinite(panX) ? panX : 0,
+    panY: Number.isFinite(panY) ? panY : 0,
   };
 }
 
@@ -308,8 +346,8 @@ function sanitizePlannerTables(tables) {
       ratio: ratioInfo.label,
       ratioX: ratioInfo.x,
       ratioY: ratioInfo.y,
-      x: Number.isFinite(x) ? clamp(x, 8, 92) : defaultPosition.x,
-      y: Number.isFinite(y) ? clamp(y, 10, 90) : defaultPosition.y,
+      x: Number.isFinite(x) ? x : defaultPosition.x,
+      y: Number.isFinite(y) ? y : defaultPosition.y,
     };
   });
 }
@@ -959,13 +997,7 @@ function renderTableConfigList(planResult) {
     sizeInput.value = String(table.size || 100);
     sizeInput.dataset.tableId = table.id;
 
-    const ratioInput = document.createElement('input');
-    ratioInput.type = 'text';
-    ratioInput.className = 'table-config-ratio';
-    ratioInput.maxLength = 9;
-    ratioInput.placeholder = '1:1';
-    ratioInput.value = table.ratio || '1:1';
-    ratioInput.dataset.tableId = table.id;
+    const ratioInput = createRatioSelect('table-config-ratio', table.id, table.ratio || '1:1');
 
     const removeButton = createElement('button', 'btn btn--mini btn--danger-soft', 'Eliminar');
     removeButton.type = 'button';
@@ -1166,6 +1198,21 @@ function updateMapZoomLabel() {
   mapZoomLabel.textContent = `Zoom ${Math.round(zoom * 100)}%`;
 }
 
+function updateMapGridBackdrop() {
+  if (!tableMap) {
+    return;
+  }
+
+  const view = sanitizeMapView(plannerState.view);
+  const scaledGrid = clamp(MAP_GRID_BASE_SIZE * view.zoom, 10, 160);
+  const offsetX = ((view.panX % scaledGrid) + scaledGrid) % scaledGrid;
+  const offsetY = ((view.panY % scaledGrid) + scaledGrid) % scaledGrid;
+
+  tableMap.style.setProperty('--map-grid-size', `${scaledGrid}px`);
+  tableMap.style.setProperty('--map-grid-offset-x', `${offsetX}px`);
+  tableMap.style.setProperty('--map-grid-offset-y', `${offsetY}px`);
+}
+
 function applyMapViewTransform() {
   plannerState.view = sanitizeMapView(plannerState.view);
 
@@ -1173,6 +1220,7 @@ function applyMapViewTransform() {
     mapViewportElement.style.transform = `translate(${plannerState.view.panX}px, ${plannerState.view.panY}px) scale(${plannerState.view.zoom})`;
   }
 
+  updateMapGridBackdrop();
   updateMapZoomLabel();
 }
 
@@ -1200,7 +1248,7 @@ function zoomMapAt(nextZoom, clientX, clientY) {
   }
 
   const view = sanitizeMapView(plannerState.view);
-  const clampedZoom = clamp(nextZoom, 0.45, 2.8);
+  const clampedZoom = clamp(nextZoom, MIN_MAP_ZOOM, MAX_MAP_ZOOM);
   if (Math.abs(clampedZoom - view.zoom) < 0.001) {
     return;
   }
@@ -1649,13 +1697,17 @@ function updateTablePosition(tableId, x, y) {
   const table = plannerState.tables.find((entry) => entry.id === tableId);
   if (!table) return;
 
-  table.x = clamp(x, 8, 92);
-  table.y = clamp(y, 10, 90);
+  if (!Number.isFinite(x) || !Number.isFinite(y)) {
+    return;
+  }
+
+  table.x = x;
+  table.y = y;
 }
 
 function updateTableNodePosition(node, x, y) {
-  node.style.left = `${clamp(x, 8, 92)}%`;
-  node.style.top = `${clamp(y, 10, 90)}%`;
+  node.style.left = `${x}%`;
+  node.style.top = `${y}%`;
 }
 
 function handleMapPointerDown(event) {
@@ -1947,7 +1999,7 @@ function closeTableContextMenu() {
   delete tableContextMenu.dataset.tableId;
 }
 
-function openTableContextMenu(tableId, clientX, clientY) {
+function openTableContextMenu(tableId) {
   if (
     !tableContextMenu
     || !tableContextLabelInput
@@ -1967,16 +2019,13 @@ function openTableContextMenu(tableId, clientX, clientY) {
   tableContextLabelInput.value = table.label;
   tableContextCapacityInput.value = String(table.capacity);
   tableContextSizeInput.value = String(table.size || 100);
-  tableContextRatioInput.value = table.ratio || '1:1';
+  ensureRatioSelectValue(tableContextRatioInput, table.ratio || '1:1');
   tableContextMenu.hidden = false;
+  tableContextMenu.scrollIntoView({ block: 'nearest', inline: 'nearest' });
 
-  const menuWidth = tableContextMenu.offsetWidth || 280;
-  const menuHeight = tableContextMenu.offsetHeight || 220;
-  const left = clamp(clientX + 8, 8, Math.max(8, window.innerWidth - menuWidth - 8));
-  const top = clamp(clientY + 8, 8, Math.max(8, window.innerHeight - menuHeight - 8));
-
-  tableContextMenu.style.left = `${left}px`;
-  tableContextMenu.style.top = `${top}px`;
+  requestAnimationFrame(() => {
+    tableContextLabelInput.focus();
+  });
 }
 
 function saveTableFromContextMenu() {
@@ -2043,7 +2092,7 @@ function handleMapContextMenu(event) {
   }
 
   event.preventDefault();
-  openTableContextMenu(tableId, event.clientX, event.clientY);
+  openTableContextMenu(tableId);
 }
 
 function refreshDashboard(statusMessage = '', statusType = 'success') {
@@ -2120,7 +2169,7 @@ if (tableGenerateUniformButton) {
 if (tableConfigList) {
   tableConfigList.addEventListener('change', (event) => {
     const target = event.target;
-    if (!(target instanceof HTMLInputElement)) {
+    if (!(target instanceof HTMLInputElement) && !(target instanceof HTMLSelectElement)) {
       return;
     }
 
