@@ -377,22 +377,539 @@ if (giftButton && giftThanks) {
   });
 }
 
-const rsvpForm = document.getElementById('rsvp-form');
-const companionsWrap = document.getElementById('companions-wrap');
-const rsvpThanks = document.getElementById('rsvp-thanks');
-const attendInputs = document.querySelectorAll('input[name="attend"]');
+const RSVP_STORAGE_KEY = 'ev-rsvp-records-v1';
+const RSVP_DEADLINE = new Date('2026-09-20T23:59:59-06:00');
 
-function syncCompanionsField() {
+const rsvpForm = document.getElementById('rsvp-form');
+const attendanceDetailsWrap = document.getElementById('attendance-details-wrap');
+const rsvpThanks = document.getElementById('rsvp-thanks');
+const rsvpSummary = document.getElementById('rsvp-summary');
+const rsvpEditButton = document.getElementById('rsvp-edit-btn');
+const rsvpStatus = document.getElementById('rsvp-status');
+const rsvpDeadlineNote = document.getElementById('rsvp-deadline-note');
+const attendInputs = document.querySelectorAll('input[name="attend"]');
+const rsvpSubmitButton = rsvpForm ? rsvpForm.querySelector('button[type="submit"]') : null;
+const fullNameInput = rsvpForm ? rsvpForm.querySelector('input[name="fullName"]') : null;
+const emailInput = rsvpForm ? rsvpForm.querySelector('input[name="email"]') : null;
+const groupNameInput = rsvpForm ? rsvpForm.querySelector('input[name="groupName"]') : null;
+const peopleCountInput = rsvpForm ? rsvpForm.querySelector('input[name="peopleCount"]') : null;
+const attendeeNamesInput = rsvpForm ? rsvpForm.querySelector('textarea[name="attendeeNames"]') : null;
+
+let existingRsvpRecord = null;
+let latestSavedRecord = null;
+let lookupRequestVersion = 0;
+
+function normalizeName(value) {
+  return value
+    .toString()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function splitAttendeeNames(value) {
+  return value
+    .toString()
+    .split(/[\n,|]+/)
+    .map((item) => item.trim())
+    .filter(Boolean);
+}
+
+function normalizeStoredRecord(record) {
+  const fullName = (record?.fullName || '').toString().trim();
+  const email = (record?.email || '').toString().trim().toLowerCase();
+  const attend = record?.attend === 'no' ? 'no' : 'yes';
+  let attendeeNames = Array.isArray(record?.attendeeNames)
+    ? record.attendeeNames.map((name) => name.toString().trim()).filter(Boolean)
+    : splitAttendeeNames(record?.attendeeNames || '');
+
+  let peopleCount = Number(record?.peopleCount || 0);
+  if (!Number.isFinite(peopleCount)) {
+    peopleCount = 0;
+  }
+
+  if (attend === 'yes') {
+    if (!attendeeNames.length && fullName) {
+      attendeeNames = [fullName];
+    }
+    if (peopleCount < 1) {
+      peopleCount = attendeeNames.length || 1;
+    }
+  } else {
+    peopleCount = 0;
+    attendeeNames = [];
+  }
+
+  const groupName = (record?.groupName || '').toString().trim() || 'Sin grupo definido';
+
+  return {
+    id: (record?.id || '').toString().trim() || `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+    createdAt: (record?.createdAt || '').toString().trim() || new Date().toISOString(),
+    updatedAt: (record?.updatedAt || '').toString().trim() || new Date().toISOString(),
+    fullName,
+    normalizedFullName: normalizeName(fullName),
+    email,
+    attend,
+    groupName,
+    normalizedGroupName: normalizeName(groupName),
+    peopleCount,
+    attendeeNames,
+    song: (record?.song || '').toString().trim(),
+    message: (record?.message || '').toString().trim(),
+    status: attend === 'yes' ? 'Asistencia confirmada' : 'No asistira',
+  };
+}
+
+function readRsvpRecords() {
+  try {
+    const raw = localStorage.getItem(RSVP_STORAGE_KEY);
+    if (!raw) {
+      return [];
+    }
+
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) {
+      return [];
+    }
+
+    return parsed
+      .map((record) => normalizeStoredRecord(record))
+      .filter((record) => record.fullName);
+  } catch (error) {
+    return [];
+  }
+}
+
+function writeRsvpRecords(records) {
+  try {
+    localStorage.setItem(RSVP_STORAGE_KEY, JSON.stringify(records));
+    return true;
+  } catch (error) {
+    return false;
+  }
+}
+
+function lookupRsvpByName(fullName) {
+  const normalizedFullName = normalizeName(fullName);
+  if (!normalizedFullName) {
+    return { ok: true, found: false };
+  }
+
+  const rows = readRsvpRecords();
+  const match = rows.find((row) => row.normalizedFullName === normalizedFullName);
+
+  if (!match) {
+    return { ok: true, found: false };
+  }
+
+  return {
+    ok: true,
+    found: true,
+    record: match,
+  };
+}
+
+function upsertRsvp(payload) {
+  const normalizedPayload = normalizeStoredRecord(payload);
+  const records = readRsvpRecords();
+  const existingIndex = records.findIndex(
+    (record) => record.normalizedFullName === normalizedPayload.normalizedFullName
+  );
+
+  if (existingIndex >= 0 && records[existingIndex].email.toLowerCase() !== normalizedPayload.email.toLowerCase()) {
+    return {
+      ok: false,
+      error: 'Este nombre ya confirmo con otro correo. Usa ese correo para editar.',
+    };
+  }
+
+  const nowIso = new Date().toISOString();
+  let mode = 'created';
+
+  if (existingIndex >= 0) {
+    mode = 'updated';
+    const existing = records[existingIndex];
+    records[existingIndex] = {
+      ...normalizedPayload,
+      id: existing.id,
+      createdAt: existing.createdAt,
+      updatedAt: nowIso,
+    };
+  } else {
+    records.push({
+      ...normalizedPayload,
+      id: normalizedPayload.id,
+      createdAt: nowIso,
+      updatedAt: nowIso,
+    });
+  }
+
+  if (!writeRsvpRecords(records)) {
+    return {
+      ok: false,
+      error: 'No se pudo guardar la confirmacion en este dispositivo.',
+    };
+  }
+
+  const saved = records.find((record) => record.normalizedFullName === normalizedPayload.normalizedFullName);
+  return {
+    ok: true,
+    mode,
+    record: saved || normalizedPayload,
+  };
+}
+
+function isDeadlinePassed() {
+  return new Date() > RSVP_DEADLINE;
+}
+
+function setRsvpStatus(message, type = 'info') {
+  if (!rsvpStatus) return;
+
+  if (!message) {
+    rsvpStatus.hidden = true;
+    rsvpStatus.textContent = '';
+    delete rsvpStatus.dataset.type;
+    return;
+  }
+
+  rsvpStatus.hidden = false;
+  rsvpStatus.textContent = message;
+  rsvpStatus.dataset.type = type;
+}
+
+function setRsvpSubmitMode(mode) {
+  if (!rsvpSubmitButton) return;
+  rsvpSubmitButton.textContent = mode === 'edit' ? 'Guardar cambios' : 'Confirmar asistencia';
+}
+
+function setFormDisabled(disabled) {
+  if (!rsvpForm) return;
+
+  Array.from(rsvpForm.elements).forEach((field) => {
+    field.disabled = disabled;
+  });
+}
+
+function syncAttendanceFields() {
   const selected = document.querySelector('input[name="attend"]:checked');
-  const showCompanions = selected && selected.value === 'yes';
-  if (companionsWrap) companionsWrap.hidden = !showCompanions;
+  const showDetails = selected && selected.value === 'yes';
+
+  if (attendanceDetailsWrap) {
+    attendanceDetailsWrap.hidden = !showDetails;
+  }
+
+  if (peopleCountInput) {
+    peopleCountInput.required = showDetails;
+    if (!showDetails) {
+      peopleCountInput.value = '0';
+    } else if (Number(peopleCountInput.value || 0) < 1) {
+      peopleCountInput.value = '1';
+    }
+  }
+
+  if (attendeeNamesInput) {
+    attendeeNamesInput.required = showDetails;
+    if (!showDetails) {
+      attendeeNamesInput.value = '';
+    }
+  }
+}
+
+function enforceDeadlineRules() {
+  const deadlinePassed = isDeadlinePassed();
+
+  if (rsvpDeadlineNote) {
+    rsvpDeadlineNote.hidden = !deadlinePassed;
+  }
+
+  if (!deadlinePassed) {
+    return false;
+  }
+
+  setFormDisabled(true);
+  setRsvpStatus('El plazo para confirmar asistencia cerro el 20 de septiembre de 2026.', 'error');
+
+  if (rsvpSubmitButton) {
+    rsvpSubmitButton.disabled = true;
+    rsvpSubmitButton.textContent = 'Confirmacion cerrada';
+  }
+
+  if (rsvpEditButton) {
+    rsvpEditButton.hidden = true;
+  }
+
+  return true;
 }
 
 attendInputs.forEach((input) => {
-  input.addEventListener('change', syncCompanionsField);
+  input.addEventListener('change', syncAttendanceFields);
 });
 
-syncCompanionsField();
+syncAttendanceFields();
+
+function isValidEmail(email) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+}
+
+function parseRsvpPayload(formData) {
+  const fullName = (formData.get('fullName') || '').toString().trim();
+  const email = (formData.get('email') || '').toString().trim().toLowerCase();
+  const groupName = (formData.get('groupName') || '').toString().trim();
+  const attend = (formData.get('attend') || '').toString();
+  const rawPeopleCount = Number(formData.get('peopleCount') || 0);
+  const peopleCount = Number.isFinite(rawPeopleCount) ? Math.round(rawPeopleCount) : 0;
+  const attendeeNamesRaw = (formData.get('attendeeNames') || '').toString();
+  const attendeeNames = splitAttendeeNames(attendeeNamesRaw);
+  const song = (formData.get('song') || '').toString().trim();
+  const message = (formData.get('message') || '').toString().trim();
+
+  return {
+    fullName,
+    normalizedFullName: normalizeName(fullName),
+    email,
+    groupName,
+    normalizedGroupName: normalizeName(groupName),
+    attend,
+    peopleCount: attend === 'yes' ? peopleCount : 0,
+    attendeeNamesRaw,
+    attendeeNames: attend === 'yes' ? attendeeNames : [],
+    song,
+    message,
+  };
+}
+
+function validateRsvpPayload(payload) {
+  if (payload.fullName.length < 5) {
+    return 'Escribe tu nombre completo para validar tu confirmacion.';
+  }
+
+  if (!isValidEmail(payload.email)) {
+    return 'Escribe un correo electronico valido para guardar tu confirmacion.';
+  }
+
+  if (payload.groupName.length < 3) {
+    return 'Escribe un nombre de grupo o familia para organizar las mesas.';
+  }
+
+  if (payload.attend !== 'yes' && payload.attend !== 'no') {
+    return 'Selecciona si asistiras o no asistiras.';
+  }
+
+  if (payload.attend === 'yes') {
+    if (payload.peopleCount < 1) {
+      return 'Indica el numero total de personas que asistiran (minimo 1).';
+    }
+
+    if (!payload.attendeeNames.length) {
+      return 'Escribe los nombres de las personas que asistiran.';
+    }
+
+    if (payload.attendeeNames.length !== payload.peopleCount) {
+      return `El numero de nombres (${payload.attendeeNames.length}) no coincide con el total de personas (${payload.peopleCount}).`;
+    }
+  }
+
+  return '';
+}
+
+function buildSummaryText(record, saveMessage) {
+  const lines = [
+    saveMessage,
+    `Nombre: ${record.fullName}`,
+    `Correo: ${record.email}`,
+    `Grupo: ${record.groupName}`,
+  ];
+
+  if (record.attend === 'yes') {
+    lines.push('Estado: Asistencia confirmada');
+    lines.push(`Numero total de personas: ${record.peopleCount}`);
+    lines.push(`Nombres registrados: ${record.attendeeNames.join(', ')}`);
+  } else {
+    lines.push('Estado: No podra asistir');
+  }
+
+  if (record.song) {
+    lines.push(`Cancion sugerida: ${record.song}`);
+  }
+
+  if (record.message) {
+    lines.push(`Mensaje: ${record.message}`);
+  }
+
+  return lines.join('\n');
+}
+
+function normalizeServerRecord(record, fallbackPayload) {
+  return normalizeStoredRecord({
+    id: (record?.id || fallbackPayload.recordId || '').toString(),
+    createdAt: record?.createdAt,
+    updatedAt: record?.updatedAt,
+    fullName: record?.fullName || fallbackPayload.fullName,
+    email: record?.email || fallbackPayload.email,
+    attend: record?.attend || fallbackPayload.attend,
+    groupName: record?.groupName || fallbackPayload.groupName,
+    peopleCount: Number(record?.peopleCount ?? fallbackPayload.peopleCount ?? 0),
+    attendeeNames: record?.attendeeNames || fallbackPayload.attendeeNames,
+    song: record?.song || fallbackPayload.song,
+    message: record?.message || fallbackPayload.message,
+  });
+}
+
+function fillRsvpForm(record) {
+  if (!rsvpForm) return;
+
+  if (fullNameInput) {
+    fullNameInput.value = record.fullName || '';
+  }
+
+  if (emailInput) {
+    emailInput.value = record.email || '';
+  }
+
+  if (groupNameInput) {
+    groupNameInput.value = record.groupName || '';
+  }
+
+  attendInputs.forEach((input) => {
+    input.checked = input.value === record.attend;
+  });
+
+  if (peopleCountInput) {
+    peopleCountInput.value = String(record.peopleCount || 0);
+  }
+
+  if (attendeeNamesInput) {
+    attendeeNamesInput.value = (record.attendeeNames || []).join('\n');
+  }
+
+  const songInput = rsvpForm.querySelector('input[name="song"]');
+  if (songInput) {
+    songInput.value = record.song || '';
+  }
+
+  const messageInput = rsvpForm.querySelector('textarea[name="message"]');
+  if (messageInput) {
+    messageInput.value = record.message || '';
+  }
+
+  syncAttendanceFields();
+}
+
+function isSameEmailAsExisting(typedEmail) {
+  if (!existingRsvpRecord || !existingRsvpRecord.email) return true;
+  return existingRsvpRecord.email.toLowerCase() === typedEmail.toLowerCase();
+}
+
+function setSavingState(isSaving, modeWhenIdle) {
+  if (!rsvpSubmitButton) return;
+
+  if (isSaving) {
+    rsvpSubmitButton.disabled = true;
+    rsvpSubmitButton.textContent = 'Guardando...';
+    return;
+  }
+
+  if (isDeadlinePassed()) {
+    enforceDeadlineRules();
+    return;
+  }
+
+  rsvpSubmitButton.disabled = false;
+  setRsvpSubmitMode(modeWhenIdle);
+}
+
+async function checkNameDuplicate() {
+  if (!fullNameInput) return;
+
+  lookupRequestVersion += 1;
+  const requestVersion = lookupRequestVersion;
+  const fullName = fullNameInput.value.trim();
+
+  existingRsvpRecord = null;
+  setRsvpSubmitMode('create');
+
+  if (fullName.length < 5 || isDeadlinePassed()) {
+    return;
+  }
+
+  setRsvpStatus('Verificando si este nombre ya confirmo asistencia...', 'info');
+  const lookupResult = lookupRsvpByName(fullName);
+
+  if (requestVersion !== lookupRequestVersion) {
+    return;
+  }
+
+  if (!lookupResult.ok) {
+    setRsvpStatus(lookupResult.error || 'No se pudo revisar duplicados por nombre.', 'error');
+    return;
+  }
+
+  if (!lookupResult.found) {
+    setRsvpStatus('', 'info');
+    setRsvpSubmitMode('create');
+    return;
+  }
+
+  existingRsvpRecord = normalizeServerRecord(lookupResult.record || {}, {
+    fullName,
+    email: '',
+    attend: 'yes',
+    peopleCount: 1,
+    attendeeNamesRaw: '',
+    song: '',
+    message: '',
+    recordId: '',
+  });
+
+  latestSavedRecord = existingRsvpRecord;
+  setRsvpSubmitMode('edit');
+
+  const typedEmail = emailInput ? emailInput.value.trim().toLowerCase() : '';
+  const recordEmail = (existingRsvpRecord.email || '').toLowerCase();
+
+  if (typedEmail && recordEmail && typedEmail === recordEmail) {
+    fillRsvpForm(existingRsvpRecord);
+    setRsvpStatus('Ya tenias una confirmacion guardada y la cargamos para que puedas editarla.', 'warning');
+    return;
+  }
+
+  if (typedEmail && recordEmail && typedEmail !== recordEmail) {
+    setRsvpStatus('Este nombre ya fue confirmado con otro correo. Usa ese correo para editar la respuesta.', 'error');
+    return;
+  }
+
+  setRsvpStatus('Este nombre ya tiene una confirmacion. Escribe el mismo correo para actualizarla.', 'warning');
+}
+
+if (fullNameInput) {
+  fullNameInput.addEventListener('blur', checkNameDuplicate);
+  fullNameInput.addEventListener('input', () => {
+    lookupRequestVersion += 1;
+    existingRsvpRecord = null;
+    setRsvpSubmitMode('create');
+  });
+}
+
+if (emailInput) {
+  emailInput.addEventListener('blur', () => {
+    if (!existingRsvpRecord || !existingRsvpRecord.email) return;
+
+    const typedEmail = emailInput.value.trim().toLowerCase();
+    if (!typedEmail) return;
+
+    if (!isSameEmailAsExisting(typedEmail)) {
+      setRsvpStatus('El nombre ya existe y el correo no coincide. Usa el correo original para editar.', 'error');
+      return;
+    }
+
+    fillRsvpForm(existingRsvpRecord);
+    setRsvpStatus('Correo validado. Ya puedes editar esta confirmacion.', 'warning');
+    setRsvpSubmitMode('edit');
+  });
+}
 
 function launchSparkles(container) {
   for (let i = 0; i < 20; i += 1) {
@@ -408,36 +925,86 @@ function launchSparkles(container) {
 }
 
 if (rsvpForm && rsvpThanks) {
-  rsvpForm.addEventListener('submit', (event) => {
+  enforceDeadlineRules();
+
+  if (rsvpEditButton) {
+    rsvpEditButton.addEventListener('click', () => {
+      if (isDeadlinePassed()) {
+        enforceDeadlineRules();
+        return;
+      }
+
+      if (latestSavedRecord) {
+        fillRsvpForm(latestSavedRecord);
+      }
+
+      rsvpThanks.hidden = true;
+      rsvpForm.hidden = false;
+      setRsvpSubmitMode('edit');
+      setRsvpStatus('Puedes editar tu confirmacion y volver a guardarla.', 'info');
+      if (fullNameInput) {
+        fullNameInput.focus();
+      }
+    });
+  }
+
+  rsvpForm.addEventListener('submit', async (event) => {
     event.preventDefault();
 
+    if (enforceDeadlineRules()) {
+      return;
+    }
+
     const formData = new FormData(rsvpForm);
-    const fullName = (formData.get('fullName') || '').toString().trim();
-    const attend = formData.get('attend');
-    const companions = Number(formData.get('companions') || 0);
-    const song = (formData.get('song') || '').toString().trim();
-    const message = (formData.get('message') || '').toString().trim();
+    const payload = parseRsvpPayload(formData);
+    const validationMessage = validateRsvpPayload(payload);
 
-    let response = '';
-    if (attend === 'yes') {
-      const companionsText = companions > 0 ? ` y ${companions} acompanante(s)` : '';
-      response = `Gracias, ${fullName}. Tu asistencia${companionsText} quedo registrada.`;
-    } else {
-      response = `Gracias, ${fullName}. Te vamos a extranar, pero agradecemos mucho tu confirmacion.`;
+    if (validationMessage) {
+      setRsvpStatus(validationMessage, 'error');
+      return;
     }
 
-    if (song) {
-      response += `\n\nCancion sugerida: ${song}`;
+    if (existingRsvpRecord && !isSameEmailAsExisting(payload.email)) {
+      setRsvpStatus('Este nombre ya tiene una confirmacion con otro correo y no se puede duplicar.', 'error');
+      return;
     }
 
-    if (message) {
-      response += `\nMensaje: ${message}`;
+    setSavingState(true, existingRsvpRecord ? 'edit' : 'create');
+    setRsvpStatus('', 'info');
+
+    const upsertPayload = {
+      ...payload,
+      recordId: existingRsvpRecord ? existingRsvpRecord.id : '',
+    };
+
+    const saveResult = upsertRsvp(upsertPayload);
+
+    if (!saveResult.ok) {
+      setSavingState(false, existingRsvpRecord ? 'edit' : 'create');
+      setRsvpStatus(saveResult.error || 'No se pudo guardar la confirmacion.', 'error');
+      return;
     }
+
+    const savedRecord = normalizeServerRecord(saveResult.record || {}, upsertPayload);
+    existingRsvpRecord = savedRecord;
+    latestSavedRecord = savedRecord;
 
     rsvpForm.hidden = true;
     rsvpThanks.hidden = false;
-    rsvpThanks.textContent = response;
+
+    if (rsvpSummary) {
+      const saveMessage = saveResult.mode === 'updated'
+        ? 'Tu confirmacion fue actualizada correctamente.'
+        : 'Tu confirmacion fue guardada correctamente.';
+      rsvpSummary.textContent = buildSummaryText(savedRecord, saveMessage);
+    }
+
+    if (rsvpEditButton) {
+      rsvpEditButton.hidden = false;
+    }
+
     launchSparkles(rsvpThanks);
+    setSavingState(false, 'edit');
   });
 }
 

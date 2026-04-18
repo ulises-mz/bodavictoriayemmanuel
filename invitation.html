@@ -222,8 +222,10 @@
       <h2 class="section__title">Confirmacion</h2>
       <p class="rsvp__text">Por favor confirma tu asistencia antes del <strong>20 de septiembre de 2026</strong>.</p>
 
-      <form class="rsvp__form" id="rsvp-form">
-        <input type="text" name="fullName" class="rsvp__input" placeholder="Tu nombre completo" required />
+      <form class="rsvp__form" id="rsvp-form" novalidate>
+        <input type="text" name="fullName" class="rsvp__input" placeholder="Tu nombre completo (como aparece en la invitacion)" autocomplete="name" required />
+        <input type="email" name="email" class="rsvp__input" placeholder="Tu correo electronico" autocomplete="email" required />
+        <input type="text" name="groupName" class="rsvp__input" placeholder="Grupo o familia (ejemplo: Familia Perez)" required />
 
         <div class="rsvp__radio-group">
           <label class="rsvp__radio">
@@ -234,8 +236,9 @@
           </label>
         </div>
 
-        <div id="companions-wrap" hidden>
-          <input type="number" name="companions" class="rsvp__input" placeholder="Numero de acompanantes" min="0" max="5" value="0" />
+        <div id="attendance-details-wrap" class="rsvp__group" hidden>
+          <input type="number" name="peopleCount" class="rsvp__input" placeholder="Numero total de personas que asistiran (incluyendote)" min="1" max="12" value="1" />
+          <textarea name="attendeeNames" class="rsvp__input rsvp__input--textarea rsvp__input--short" placeholder="Nombre y apellido de cada asistente (uno por linea)"></textarea>
         </div>
 
         <input type="text" name="song" class="rsvp__input" placeholder="Cancion sugerida (opcional)" />
@@ -244,13 +247,22 @@
         <button type="submit" class="rsvp__btn">Confirmar asistencia</button>
       </form>
 
-      <div class="rsvp__thanks" id="rsvp-thanks" hidden></div>
+      <p class="rsvp__status" id="rsvp-status" hidden></p>
+      <p class="rsvp__deadline" id="rsvp-deadline-note" hidden>Las confirmaciones se cerraron el 20 de septiembre de 2026.</p>
+      <p class="rsvp__storage">Las confirmaciones se guardan en este sitio para usarse en el Panel de Novios.</p>
+
+      <div class="rsvp__thanks" id="rsvp-thanks" hidden>
+        <p class="rsvp__summary" id="rsvp-summary"></p>
+        <button type="button" class="rsvp__edit-btn" id="rsvp-edit-btn">Editar respuesta</button>
+      </div>
     </section>
+
   </main>
 
   <footer class="footer">
     <p class="footer__names">E &amp; V</p>
     <p class="footer__year">2026</p>
+    <p class="footer__admin"><a href="panel-login.html">Acceso novios</a></p>
   </footer>
 
   <script src="invite.js"></script>

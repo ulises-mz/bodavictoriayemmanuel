@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Acceso Novios</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&family=Sora:wght@400;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="panel-login.css" />
+</head>
+<body>
+  <div class="login-bg-shape login-bg-shape--left" aria-hidden="true"></div>
+  <div class="login-bg-shape login-bg-shape--right" aria-hidden="true"></div>
+
+  <main class="login-wrap">
+    <section class="login-card" aria-labelledby="login-title">
+      <p class="login-kicker">Acceso Privado</p>
+      <h1 id="login-title">Panel de Novios</h1>
+      <p class="login-copy">Ingresa con tu correo y contrasena para administrar invitados y mesas.</p>
+
+      <form id="panel-login-form" class="login-form" novalidate>
+        <label class="login-field">
+          <span>Correo</span>
+          <input type="email" name="email" autocomplete="username" required placeholder="correo@ejemplo.com" />
+        </label>
+
+        <label class="login-field">
+          <span>Contrasena</span>
+          <input type="password" name="password" autocomplete="current-password" required placeholder="Tu contrasena" />
+        </label>
+
+        <button type="submit" class="login-btn">Entrar al panel</button>
+      </form>
+
+      <p id="panel-login-status" class="login-status" hidden></p>
+
+      <div class="login-links">
+        <a href="invitation.html">Volver a la invitacion</a>
+      </div>
+    </section>
+  </main>
+
+  <script src="panel-login.js"></script>
+</body>
+</html>

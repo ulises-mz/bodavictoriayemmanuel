@@ -906,6 +906,11 @@ main {
   gap: 0.7rem;
 }
 
+.rsvp__group {
+  display: grid;
+  gap: 0.7rem;
+}
+
 .rsvp__input {
   width: 100%;
   border: 1px solid rgba(189, 169, 125, 0.56);
@@ -929,6 +934,10 @@ main {
 .rsvp__input--textarea {
   min-height: 102px;
   resize: vertical;
+}
+
+.rsvp__input--short {
+  min-height: 86px;
 }
 
 .rsvp__radio-group {
@@ -971,6 +980,68 @@ main {
   background: var(--sage-mid);
 }
 
+.rsvp__btn:disabled,
+.rsvp__edit-btn:disabled {
+  opacity: 0.62;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.rsvp__status,
+.rsvp__deadline,
+.rsvp__storage {
+  width: min(580px, 100%);
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.rsvp__status {
+  margin-top: 0.85rem;
+  border-left: 3px solid rgba(76, 101, 72, 0.6);
+  background: rgba(255, 255, 255, 0.58);
+  padding: 0.62rem 0.78rem;
+  text-align: left;
+  font-family: 'Montserrat', sans-serif;
+  font-size: 0.64rem;
+  letter-spacing: 0.07em;
+  line-height: 1.62;
+  text-transform: uppercase;
+  color: #3b5238;
+}
+
+.rsvp__status[data-type='warning'] {
+  border-left-color: rgba(189, 169, 125, 0.8);
+  color: #6e5a32;
+}
+
+.rsvp__status[data-type='error'] {
+  border-left-color: rgba(149, 53, 53, 0.78);
+  color: #8a2f2f;
+}
+
+.rsvp__status[data-type='info'] {
+  border-left-color: rgba(76, 101, 72, 0.7);
+}
+
+.rsvp__deadline {
+  margin-top: 0.72rem;
+  font-family: 'Montserrat', sans-serif;
+  font-size: 0.66rem;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: #7d3e3e;
+}
+
+.rsvp__storage {
+  margin-top: 0.72rem;
+  font-family: 'Montserrat', sans-serif;
+  font-size: 0.62rem;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  line-height: 1.6;
+  color: #5f543f;
+}
+
 .rsvp__thanks {
   position: relative;
   margin-top: 1rem;
@@ -980,9 +1051,31 @@ main {
   border: 1px solid rgba(189, 169, 125, 0.5);
   background: rgba(255, 255, 255, 0.52);
   padding: 1rem;
-  white-space: pre-line;
   line-height: 1.75;
   overflow: hidden;
+}
+
+.rsvp__summary {
+  white-space: pre-line;
+}
+
+.rsvp__edit-btn {
+  margin-top: 0.8rem;
+  border: 1px solid rgba(35, 52, 36, 0.72);
+  background: transparent;
+  color: var(--sage-deep);
+  cursor: pointer;
+  padding: 0.62rem 0.9rem;
+  font-family: 'Montserrat', sans-serif;
+  font-size: 0.6rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.rsvp__edit-btn:hover {
+  background: rgba(35, 52, 36, 0.86);
+  color: var(--ivory);
 }
 
 .rsvp-spark {
@@ -1029,6 +1122,23 @@ main {
   letter-spacing: 0.24em;
   text-transform: uppercase;
   opacity: 0.76;
+}
+
+.footer__admin {
+  margin-top: 0.62rem;
+  font-family: 'Montserrat', sans-serif;
+  font-size: 0.57rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.footer__admin a {
+  color: rgba(247, 244, 238, 0.86);
+  text-decoration: none;
+}
+
+.footer__admin a:hover {
+  text-decoration: underline;
 }
 
 @keyframes fadeUp {
