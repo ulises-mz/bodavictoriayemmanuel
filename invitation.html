@@ -165,8 +165,8 @@
           <h3 class="event-panel__title">Sala de Eventos Rescate</h3>
           <p class="event-panel__text">Despues de la ceremonia, celebremos juntos con alegria, musica y una tarde inolvidable. La actividad finaliza a las 8:30 PM.</p>
           <div class="event-panel__actions">
-            <a class="map-link" href="https://maps.app.goo.gl/WJtkjTQBSdKbBQnj6?g_st=aw" target="_blank" rel="noopener noreferrer">Abrir en Google Maps</a>
-            <button type="button" class="map-copy" data-url="https://maps.app.goo.gl/WJtkjTQBSdKbBQnj6?g_st=aw">Copiar ubicacion</button>
+            <a class="map-link" href="https://maps.app.goo.gl/E6pJXtPsb1cdttea6?g_st=ic" target="_blank" rel="noopener noreferrer">Abrir en Google Maps</a>
+            <button type="button" class="map-copy" data-url="https://maps.app.goo.gl/E6pJXtPsb1cdttea6?g_st=ic">Copiar ubicacion</button>
           </div>
         </article>
       </div>
@@ -201,20 +201,62 @@
 
     <section class="section reveal dresscode" id="dresscode">
       <h2 class="section__title">Codigo de Vestimenta</h2>
-      <p class="dresscode__main">Formal</p>
 
-      <div class="dresscode-switch" role="tablist" aria-label="Recomendaciones de vestimenta">
-        <button type="button" class="dresscode-switch__btn is-active" data-note="Mujeres: vestido largo o midi de estilo elegante.">Mujeres</button>
-        <button type="button" class="dresscode-switch__btn" data-note="Hombres: traje formal o conjunto elegante de vestir.">Hombres</button>
-        <button type="button" class="dresscode-switch__btn" data-note="General: evitar prendas casuales para mantener la etiqueta de la celebracion.">General</button>
+      <div class="dresscode__panel">
+        <p class="dresscode__ornament" aria-hidden="true">✦ &nbsp;✦&nbsp; ✦</p>
+        <p class="dresscode__main">Formal</p>
+        <p class="dresscode__sub">Etiqueta elegante para acompanarnos en este dia tan especial</p>
+
+        <div class="dresscode__grid">
+          <article class="dresscode-card">
+            <span class="dresscode-card__icon" aria-hidden="true">
+              <svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M24 6c0 6 3 9 8 9s8-3 8-9" />
+                <path d="M24 6l4 10-6 8 4 10c-6 8-10 16-11 24h34c-1-8-5-16-11-24l4-10-6-8 4-10" />
+              </svg>
+            </span>
+            <h3 class="dresscode-card__title">Mujeres</h3>
+            <p class="dresscode-card__text">Vestido largo o midi de estilo elegante.</p>
+          </article>
+
+          <article class="dresscode-card">
+            <span class="dresscode-card__icon" aria-hidden="true">
+              <svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M22 6h20l-4 8h-12z" />
+                <path d="M22 6L12 12l4 44h32l4-44-10-6" />
+                <path d="M26 14l6 10 6-10" />
+                <path d="M32 24v22" />
+              </svg>
+            </span>
+            <h3 class="dresscode-card__title">Hombres</h3>
+            <p class="dresscode-card__text">Traje formal o conjunto elegante de vestir.</p>
+          </article>
+        </div>
+
+        <p class="dresscode__note">Por favor evitar prendas casuales para mantener la etiqueta de la celebracion.</p>
       </div>
-
-      <p class="dresscode__note" id="dresscode-note">Mujeres: vestido largo o midi de estilo elegante.</p>
     </section>
 
     <section class="section reveal gifts" id="gifts">
       <h2 class="section__title">Mesa de Regalos</h2>
-      <p class="gifts__text">Para nosotros, tu presencia es el mejor regalo. Si deseas tener un detalle adicional, recibiremos contribuciones en efectivo con mucho carino.</p>
+      <p class="gifts__text">Para nosotros, tu presencia es el mejor regalo. Si deseas tener un detalle adicional, puedes hacerlo por Sinpe Movil con mucho carino.</p>
+
+      <div class="gifts__sinpe">
+        <article class="sinpe-card">
+          <p class="sinpe-card__label">Sinpe Movil</p>
+          <h3 class="sinpe-card__name">Emanuel</h3>
+          <p class="sinpe-card__number">8459-8685</p>
+          <button type="button" class="sinpe-card__copy map-copy" data-copy="84598685">Copiar numero</button>
+        </article>
+
+        <article class="sinpe-card">
+          <p class="sinpe-card__label">Sinpe Movil</p>
+          <h3 class="sinpe-card__name">Victoria</h3>
+          <p class="sinpe-card__number">8441-8176</p>
+          <button type="button" class="sinpe-card__copy map-copy" data-copy="84418176">Copiar numero</button>
+        </article>
+      </div>
+
       <button type="button" class="gifts__btn" id="gift-btn">Enviar buenos deseos</button>
       <p class="gifts__thanks" id="gift-thanks" hidden>Gracias por tu carino y por acompanarnos en este dia tan especial.</p>
     </section>

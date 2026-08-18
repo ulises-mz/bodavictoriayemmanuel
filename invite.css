@@ -845,46 +845,99 @@ main {
   text-align: center;
 }
 
+/* Panel destacado: la vestimenta ahora es imposible de pasar por alto. */
+.dresscode__panel {
+  margin: 1.3rem auto 0;
+  width: min(820px, 100%);
+  border: 1px solid rgba(189, 169, 125, 0.62);
+  outline: 1px solid rgba(189, 169, 125, 0.3);
+  outline-offset: 6px;
+  background: linear-gradient(160deg, rgba(255, 255, 255, 0.62), rgba(239, 232, 218, 0.5));
+  box-shadow: var(--shadow);
+  padding: clamp(1.4rem, 4vw, 2.4rem) clamp(1rem, 3.5vw, 2rem);
+}
+
+.dresscode__ornament {
+  color: var(--gold);
+  font-size: 0.8rem;
+  letter-spacing: 0.5em;
+}
+
 .dresscode__main {
-  margin-top: 0.82rem;
-  font-size: clamp(1.9rem, 4.8vw, 2.9rem);
+  margin-top: 0.55rem;
+  font-family: 'Great Vibes', cursive;
+  font-size: clamp(2.8rem, 9vw, 4.4rem);
+  line-height: 1.05;
   color: var(--sage-deep);
-  font-style: italic;
 }
 
-.dresscode-switch {
-  margin-top: 1.15rem;
-  display: flex;
-  justify-content: center;
-  flex-wrap: wrap;
-  gap: 0.55rem;
-}
-
-.dresscode-switch__btn {
-  border: 1px solid rgba(62, 91, 62, 0.3);
-  background: rgba(255, 255, 255, 0.42);
-  color: #504431;
-  cursor: pointer;
-  padding: 0.58rem 1rem;
+.dresscode__sub {
+  margin: 0.5rem auto 0;
+  width: min(520px, 100%);
   font-family: 'Montserrat', sans-serif;
-  font-size: 0.62rem;
-  letter-spacing: 0.14em;
+  font-size: clamp(0.6rem, 1.2vw, 0.74rem);
+  letter-spacing: 0.16em;
   text-transform: uppercase;
-  transition: transform 0.2s ease, background 0.22s ease, color 0.22s ease;
+  line-height: 1.8;
+  color: #6a5d45;
 }
 
-.dresscode-switch__btn:hover,
-.dresscode-switch__btn.is-active {
-  transform: translateY(-2px);
-  background: var(--sage-mid);
-  color: var(--ivory);
+.dresscode__grid {
+  margin-top: 1.4rem;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(150px, 1fr));
+  gap: clamp(0.7rem, 2vw, 1.2rem);
+}
+
+.dresscode-card {
+  border: 1px solid rgba(189, 169, 125, 0.5);
+  background: rgba(255, 255, 255, 0.55);
+  padding: clamp(1.1rem, 3vw, 1.6rem) 0.9rem;
+  transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.3s ease;
+}
+
+.dresscode-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow);
+}
+
+.dresscode-card__icon {
+  display: inline-flex;
+  width: clamp(52px, 12vw, 68px);
+  height: clamp(52px, 12vw, 68px);
+  padding: 0.72rem;
+  border-radius: 50%;
+  border: 1px solid rgba(189, 169, 125, 0.65);
+  background: rgba(247, 244, 238, 0.85);
+  color: var(--sage-mid);
+}
+
+.dresscode-card__icon svg {
+  width: 100%;
+  height: 100%;
+}
+
+.dresscode-card__title {
+  margin-top: 0.7rem;
+  font-size: clamp(1.35rem, 3.4vw, 1.9rem);
+  color: var(--sage-deep);
+}
+
+.dresscode-card__text {
+  margin-top: 0.35rem;
+  font-size: clamp(0.98rem, 2.2vw, 1.2rem);
+  line-height: 1.65;
 }
 
 .dresscode__note {
-  margin: 0.95rem auto 0;
-  width: min(620px, 100%);
-  line-height: 1.85;
-  font-size: clamp(0.95rem, 2vw, 1.2rem);
+  margin: 1.2rem auto 0;
+  width: min(560px, 100%);
+  padding-top: 0.95rem;
+  border-top: 1px solid rgba(189, 169, 125, 0.4);
+  line-height: 1.8;
+  font-size: clamp(0.95rem, 2vw, 1.15rem);
+  font-style: italic;
+  color: #55492f;
 }
 
 .gifts,
@@ -898,6 +951,55 @@ main {
   width: min(720px, 100%);
   line-height: 1.82;
   font-size: clamp(1rem, 2.2vw, 1.3rem);
+}
+
+.gifts__sinpe {
+  margin: 1.2rem auto 0;
+  width: min(640px, 100%);
+  display: grid;
+  grid-template-columns: repeat(2, minmax(180px, 1fr));
+  gap: clamp(0.7rem, 2vw, 1.1rem);
+}
+
+.sinpe-card {
+  border: 1px solid rgba(189, 169, 125, 0.55);
+  background: rgba(255, 255, 255, 0.55);
+  box-shadow: var(--shadow);
+  padding: 1.1rem 0.9rem 1.2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.sinpe-card__label {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 0.58rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: #6f634a;
+}
+
+.sinpe-card__name {
+  font-size: clamp(1.35rem, 3vw, 1.8rem);
+  color: var(--sage-deep);
+}
+
+.sinpe-card__number {
+  font-size: clamp(1.25rem, 3.4vw, 1.7rem);
+  letter-spacing: 0.06em;
+  font-weight: 500;
+  color: var(--ink);
+}
+
+.sinpe-card__copy {
+  margin-top: 0.5rem;
+}
+
+@media (max-width: 480px) {
+  .gifts__sinpe {
+    grid-template-columns: 1fr;
+  }
 }
 
 .gifts__btn {

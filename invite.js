@@ -333,10 +333,10 @@ const copyButtons = document.querySelectorAll('.map-copy');
 copyButtons.forEach((button) => {
   button.addEventListener('click', async () => {
     const originalText = button.textContent;
-    const url = button.dataset.url;
+    const value = button.dataset.copy || button.dataset.url;
 
     try {
-      await copyText(url);
+      await copyText(value);
       button.textContent = 'Copiado';
       button.classList.add('is-copied');
       setTimeout(() => {
@@ -407,20 +407,6 @@ function updateCountdown() {
 
 updateCountdown();
 setInterval(updateCountdown, 1000);
-
-const dresscodeButtons = Array.from(document.querySelectorAll('.dresscode-switch__btn'));
-const dresscodeNote = document.getElementById('dresscode-note');
-
-dresscodeButtons.forEach((button) => {
-  button.addEventListener('click', () => {
-    dresscodeButtons.forEach((item) => item.classList.remove('is-active'));
-    button.classList.add('is-active');
-
-    if (dresscodeNote) {
-      dresscodeNote.textContent = button.dataset.note;
-    }
-  });
-});
 
 const giftButton = document.getElementById('gift-btn');
 const giftThanks = document.getElementById('gift-thanks');
