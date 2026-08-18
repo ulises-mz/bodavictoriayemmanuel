@@ -319,13 +319,84 @@ html, body {
 .env-contents.show-contents { display: block; }
 
 .env-contents.animating {
-  transition: transform 1s cubic-bezier(0.25, 0.46, 0.45, 0.94),
-              opacity   0.4s ease 0.15s;
+  transition: opacity 0.4s ease 0.1s;
 }
 
+/* La carta sube con masa de papel: leve sobre-impulso, una inclinacion
+   sutil a mitad de camino y un asentamiento suave al final. */
 .env-contents.risen {
   opacity: 1;
   pointer-events: auto;
+  transform: translateY(var(--rise-y, -200px));
+  animation: letterRise 1.3s cubic-bezier(0.33, 1, 0.42, 1) forwards;
+  will-change: transform;
+}
+
+@keyframes letterRise {
+  0% {
+    transform: translateY(0) rotate(0deg);
+  }
+  58% {
+    transform: translateY(calc(var(--rise-y, -200px) * 1.055)) rotate(-1.3deg);
+  }
+  80% {
+    transform: translateY(calc(var(--rise-y, -200px) * 0.988)) rotate(0.6deg);
+  }
+  100% {
+    transform: translateY(var(--rise-y, -200px)) rotate(0deg);
+  }
+}
+
+/* El contenido de la carta aparece en cascada cuando ya subio. */
+.env-contents .letter > * {
+  opacity: 0;
+  transform: translateY(12px);
+}
+
+.env-contents.risen .letter > * {
+  animation: letterItem 0.65s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.env-contents.risen .letter > *:nth-child(1) { animation-delay: 0.5s; }
+.env-contents.risen .letter > *:nth-child(2) { animation-delay: 0.62s; }
+.env-contents.risen .letter > *:nth-child(3) { animation-delay: 0.74s; }
+.env-contents.risen .letter > *:nth-child(4) { animation-delay: 0.86s; }
+.env-contents.risen .letter > *:nth-child(5) { animation-delay: 0.98s; }
+
+@keyframes letterItem {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* El CTA invita al toque con un pulso suave cuando todo asento. */
+.env-contents.risen .letter__cta {
+  animation:
+    letterItem 0.65s cubic-bezier(0.22, 1, 0.36, 1) 0.98s forwards,
+    letterCtaPulse 2.8s ease-in-out 2.3s infinite;
+}
+
+@keyframes letterCtaPulse {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(-2px) scale(1.035); }
+}
+
+/* La sombra del papel se profundiza al salir del sobre. */
+.env-contents.risen .letter {
+  box-shadow: 0 -8px 34px rgba(0, 0, 0, 0.2);
+  transition: box-shadow 0.9s ease 0.3s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .env-contents.risen,
+  .env-contents.risen .letter > *,
+  .env-contents.risen .letter__cta {
+    animation: none;
+  }
+
+  .env-contents .letter > * {
+    opacity: 1;
+    transform: none;
+  }
 }
 
 /* ============================================================

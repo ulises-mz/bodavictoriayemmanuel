@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&family=Sora:wght@400;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="panel-novios.css?v=20260418e" />
+  <link rel="stylesheet" href="panel-novios.css?v=20260818a" />
 </head>
 <body>
   <div class="dashboard-bg dashboard-bg--a" aria-hidden="true"></div>
@@ -120,12 +120,17 @@
             <div class="assignment-workspace">
               <aside class="assignment-pool-shell">
                 <div class="panel-head panel-head--stack planner-subhead">
-                  <h3 id="manual-assignment-title">Elementos para arrastrar</h3>
-                  <p id="manual-assignment-copy">Arrastra una familia o persona a un asiento circular o al centro de la mesa.</p>
+                  <h3 id="manual-assignment-title">Invitados por acomodar</h3>
+                  <p id="manual-assignment-copy">Toca una familia o persona para seleccionarla y luego toca la mesa o el asiento donde va. En computadora tambien puedes arrastrarla.</p>
                 </div>
 
-                <div id="assignment-unassigned-drop" class="assignment-unassigned-drop" aria-label="Quitar de mesa">
-                  Arrastra aqui para quitar asignacion
+                <div id="assignment-selected-banner" class="assignment-selected-banner" hidden>
+                  <span id="assignment-selected-text"></span>
+                  <button type="button" id="assignment-selected-cancel" class="btn btn--mini btn--soft">Cancelar</button>
+                </div>
+
+                <div id="assignment-unassigned-drop" class="assignment-unassigned-drop" aria-label="Quitar de mesa" role="button" tabindex="0">
+                  Con un elemento seleccionado, toca aqui para quitarlo de su mesa (o arrastralo hasta aca)
                 </div>
 
                 <div id="manual-assignment-list" class="manual-assignment-list"></div>
@@ -134,7 +139,7 @@
               <section class="assignment-map-shell" aria-label="Area de asignacion por mesa">
                 <div class="panel-head panel-head--stack planner-subhead">
                   <h3>Croquis de asignacion</h3>
-                  <p>Click derecho en una mesa para editar. Arrastra desde el boton "Mover" para reposicionar la mesa.</p>
+                  <p>Toca "Editar" en una mesa para cambiar su nombre, capacidad o forma. Arrastra desde "Mover" para reposicionarla.</p>
                 </div>
 
                 <div class="map-toolbar" aria-label="Controles del lienzo">
@@ -216,6 +221,6 @@
     </section>
   </main>
 
-  <script src="panel-novios.js?v=20260418e"></script>
+  <script src="panel-novios.js?v=20260818a"></script>
 </body>
 </html>

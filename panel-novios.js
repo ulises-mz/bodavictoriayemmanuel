@@ -6,6 +6,11 @@ const TABLE_RATIO_PRESETS = ['1:1', '1:2', '2:1', '3:2', '2:3'];
 const MIN_MAP_ZOOM = 0.2;
 const MAX_MAP_ZOOM = 4;
 const MAP_GRID_BASE_SIZE = 24;
+/* Lienzo virtual de tamano fijo: las posiciones en % siempre viven en un
+   plano grande y el zoom lo escala a la pantalla. Asi las mesas no se
+   enciman en telefonos por tener un lienzo fisicamente pequeno. */
+const MAP_VIRTUAL_WIDTH = 1400;
+const MAP_VIRTUAL_HEIGHT = 1000;
 
 if (sessionStorage.getItem(PANEL_SESSION_KEY) !== '1') {
   window.location.href = PANEL_LOGIN_ROUTE;
@@ -35,6 +40,9 @@ const tableMap = document.getElementById('table-map');
 const assignmentModeTabs = document.getElementById('assignment-mode-tabs');
 const assignmentAutoButton = document.getElementById('assignment-auto-btn');
 const assignmentUnassignedDrop = document.getElementById('assignment-unassigned-drop');
+const assignmentSelectedBanner = document.getElementById('assignment-selected-banner');
+const assignmentSelectedText = document.getElementById('assignment-selected-text');
+const assignmentSelectedCancel = document.getElementById('assignment-selected-cancel');
 const manualAssignmentTitle = document.getElementById('manual-assignment-title');
 const manualAssignmentCopy = document.getElementById('manual-assignment-copy');
 const plannerModeHint = document.getElementById('planner-mode-hint');
@@ -65,6 +73,10 @@ let mapPanState = null;
 let mapViewportElement = null;
 let draggingUnitKey = '';
 let currentDropTarget = null;
+/* Asignacion por toque (movil y escritorio): se selecciona una tarjeta
+   y luego se toca la mesa o el asiento de destino. */
+let selectedUnitKey = '';
+let suppressNextMapClick = false;
 
 function normalizeName(value) {
   return value
@@ -279,9 +291,26 @@ function createRatioSelect(className, tableId, ratioValue) {
   return select;
 }
 
+function getFitZoom() {
+  const width = (tableMap && tableMap.clientWidth) || 700;
+  const height = (tableMap && tableMap.clientHeight) || 600;
+
+  return clamp(
+    Math.min(width / MAP_VIRTUAL_WIDTH, height / MAP_VIRTUAL_HEIGHT),
+    MIN_MAP_ZOOM,
+    1.2
+  );
+}
+
 function getDefaultMapView() {
+  // En escritorio el zoom inicial ajusta el lienzo completo; en telefono
+  // se fija un zoom legible (las mesas no se enciman gracias al lienzo
+  // virtual) y el usuario navega paneando.
+  const fitZoom = getFitZoom();
+  const zoom = window.innerWidth <= 680 ? Math.max(fitZoom, 0.5) : fitZoom;
+
   return {
-    zoom: 1,
+    zoom,
     panX: 0,
     panY: 0,
   };
@@ -1143,9 +1172,13 @@ function renderManualAssignmentList(planResult, units) {
 
     item.appendChild(createElement('p', 'manual-row-meta', rowMeta));
 
+    if (unit.key === selectedUnitKey) {
+      item.classList.add('is-selected');
+    }
+
     const helpText = isAssigned
-      ? 'Puedes arrastrarlo de nuevo a otra mesa o asiento.'
-      : 'Arrastralo a una mesa o a un asiento circular.';
+      ? 'Tocalo para seleccionarlo y moverlo a otra mesa, o arrastralo.'
+      : 'Tocalo para seleccionarlo y luego toca una mesa, o arrastralo.';
     item.appendChild(createElement('p', 'manual-row-meta', helpText));
 
     const tools = createElement('div', 'assignment-card-tools');
@@ -1230,15 +1263,13 @@ function getMapVirtualPoint(clientX, clientY) {
   }
 
   const bounds = tableMap.getBoundingClientRect();
-  const width = tableMap.clientWidth || bounds.width || 1;
-  const height = tableMap.clientHeight || bounds.height || 1;
   const view = sanitizeMapView(plannerState.view);
 
   return {
     x: ((clientX - bounds.left) - view.panX) / view.zoom,
     y: ((clientY - bounds.top) - view.panY) / view.zoom,
-    width,
-    height,
+    width: MAP_VIRTUAL_WIDTH,
+    height: MAP_VIRTUAL_HEIGHT,
   };
 }
 
@@ -1402,7 +1433,16 @@ function renderTableMap(planResult) {
     dragHandle.type = 'button';
     dragHandle.dataset.tableId = table.id;
 
+    // Insignia circular en la esquina del nucleo: no ocupa espacio del
+    // contenido, asi nunca tapa el titulo en mesas pequenas.
+    const editButton = createElement('button', 'map-table-edit-btn', '✎');
+    editButton.type = 'button';
+    editButton.dataset.tableId = table.id;
+    editButton.title = 'Editar mesa';
+    editButton.setAttribute('aria-label', `Editar ${table.label}`);
+
     core.appendChild(dragHandle);
+    core.appendChild(editButton);
     core.appendChild(createElement('p', 'map-table-title', table.label));
     core.appendChild(
       createElement('p', 'map-table-occupancy', `${assignedCount}/${table.capacity} asientos ocupados`)
@@ -1693,6 +1733,69 @@ function clearUnitAssignment(unitKey) {
   renderPlanner('Asignacion manual removida para el elemento seleccionado.', 'success');
 }
 
+/* ── Seleccion por toque: alternativa al drag & drop que funciona en movil ── */
+function setSelectedUnit(unitKey, unitLabel = '') {
+  selectedUnitKey = unitKey;
+
+  if (manualAssignmentList) {
+    manualAssignmentList.querySelectorAll('.manual-assignment-item').forEach((item) => {
+      item.classList.toggle('is-selected', Boolean(unitKey) && item.dataset.unitKey === unitKey);
+    });
+  }
+
+  if (tableMap) {
+    tableMap.classList.toggle('is-assign-mode', Boolean(unitKey));
+  }
+
+  if (assignmentSelectedBanner && assignmentSelectedText) {
+    if (unitKey) {
+      assignmentSelectedText.textContent = `Asignando: ${unitLabel}. Toca una mesa o un asiento del croquis.`;
+      assignmentSelectedBanner.hidden = false;
+    } else {
+      assignmentSelectedBanner.hidden = true;
+      assignmentSelectedText.textContent = '';
+    }
+  }
+}
+
+function handleMapAssignClick(event) {
+  if (suppressNextMapClick) {
+    suppressNextMapClick = false;
+    return;
+  }
+
+  const target = event.target;
+  if (!(target instanceof HTMLElement)) {
+    return;
+  }
+
+  const editButton = target.closest('.map-table-edit-btn');
+  if (editButton) {
+    const tableId = (editButton.dataset.tableId || '').toString();
+    if (tableId) {
+      openTableContextMenu(tableId);
+    }
+    return;
+  }
+
+  if (target.closest('.map-table-drag-handle')) {
+    return;
+  }
+
+  if (!selectedUnitKey) {
+    return;
+  }
+
+  const dropTarget = getDropTargetFromMapEventTarget(target);
+  if (!dropTarget) {
+    return;
+  }
+
+  const unitKey = selectedUnitKey;
+  setSelectedUnit('');
+  assignUnitToTable(unitKey, dropTarget.tableId, dropTarget.seatIndex);
+}
+
 function updateTablePosition(tableId, x, y) {
   const table = plannerState.tables.find((entry) => entry.id === tableId);
   if (!table) return;
@@ -1740,6 +1843,9 @@ function handleMapPointerDown(event) {
       tableId,
       pointerId: event.pointerId,
       node: tableNode,
+      startClientX: event.clientX,
+      startClientY: event.clientY,
+      moved: false,
     };
 
     tableNode.classList.add('is-dragging');
@@ -1771,6 +1877,17 @@ function handleMapPointerMove(event) {
   }
 
   if (mapDragState && mapDragState.pointerId === event.pointerId) {
+    if (
+      Math.abs(event.clientX - mapDragState.startClientX) > 4
+      || Math.abs(event.clientY - mapDragState.startClientY) > 4
+    ) {
+      mapDragState.moved = true;
+    }
+
+    if (!mapDragState.moved) {
+      return;
+    }
+
     const virtualPoint = getMapVirtualPoint(event.clientX, event.clientY);
     const x = (virtualPoint.x / virtualPoint.width) * 100;
     const y = (virtualPoint.y / virtualPoint.height) * 100;
@@ -1787,12 +1904,21 @@ function handleMapPointerMove(event) {
   plannerState.view.panX = mapPanState.startPanX + (event.clientX - mapPanState.startClientX);
   plannerState.view.panY = mapPanState.startPanY + (event.clientY - mapPanState.startClientY);
 
+  if (
+    Math.abs(event.clientX - mapPanState.startClientX) > 6
+    || Math.abs(event.clientY - mapPanState.startClientY) > 6
+  ) {
+    suppressNextMapClick = true;
+  }
+
   applyMapViewTransform();
 }
 
 function handleMapPointerUp(event) {
   if (mapDragState && mapDragState.pointerId === event.pointerId) {
     const activeNode = mapDragState.node;
+    const dragMoved = mapDragState.moved;
+    const dragTableId = mapDragState.tableId;
     activeNode.classList.remove('is-dragging');
 
     try {
@@ -1802,6 +1928,19 @@ function handleMapPointerUp(event) {
     }
 
     mapDragState = null;
+
+    if (!dragMoved) {
+      // Tap sin arrastre sobre "Mover": si hay un elemento seleccionado,
+      // se interpreta como asignacion a esa mesa (clave en tactil, donde
+      // el dedo puede caer sobre el boton en mesas pequenas).
+      if (selectedUnitKey) {
+        const unitKey = selectedUnitKey;
+        setSelectedUnit('');
+        assignUnitToTable(unitKey, dragTableId, null);
+      }
+      return;
+    }
+
     savePlanConfig();
     setTablePlanStatus('Croquis actualizado y guardado.', 'success');
     return;
@@ -1810,6 +1949,10 @@ function handleMapPointerUp(event) {
   if (!mapPanState || mapPanState.pointerId !== event.pointerId || !tableMap) {
     return;
   }
+
+  const panMoved =
+    Math.abs(event.clientX - mapPanState.startClientX) > 6
+    || Math.abs(event.clientY - mapPanState.startClientY) > 6;
 
   mapPanState = null;
   tableMap.classList.remove('is-panning');
@@ -1820,8 +1963,10 @@ function handleMapPointerUp(event) {
     // Ignore pointer capture release errors.
   }
 
-  savePlanConfig();
-  setTablePlanStatus('Vista del lienzo actualizada.', 'success');
+  if (panMoved) {
+    savePlanConfig();
+    setTablePlanStatus('Vista del lienzo actualizada.', 'success');
+  }
 }
 
 function clearDropTargetState() {
@@ -2213,19 +2358,40 @@ if (manualAssignmentList) {
     }
 
     const button = target.closest('button[data-action]');
-    if (!button) {
+    if (button) {
+      const action = button.dataset.action;
+      const unitKey = (button.dataset.unitKey || '').toString();
+      if (!unitKey) {
+        return;
+      }
+
+      if (action === 'clear-unit') {
+        if (selectedUnitKey === unitKey) {
+          setSelectedUnit('');
+        }
+        clearUnitAssignment(unitKey);
+      }
       return;
     }
 
-    const action = button.dataset.action;
-    const unitKey = (button.dataset.unitKey || '').toString();
+    // Toque en la tarjeta: seleccionar / deseleccionar para asignar tocando.
+    const card = target.closest('.manual-assignment-item[data-unit-key]');
+    if (!card) {
+      return;
+    }
+
+    const unitKey = (card.dataset.unitKey || '').toString();
     if (!unitKey) {
       return;
     }
 
-    if (action === 'clear-unit') {
-      clearUnitAssignment(unitKey);
+    if (selectedUnitKey === unitKey) {
+      setSelectedUnit('');
+      return;
     }
+
+    const heading = card.querySelector('h3');
+    setSelectedUnit(unitKey, heading ? heading.textContent : 'elemento');
   });
 
   manualAssignmentList.addEventListener('dragstart', handleAssignmentDragStart);
@@ -2269,6 +2435,15 @@ if (assignmentModeTabs) {
 }
 
 if (assignmentUnassignedDrop) {
+  assignmentUnassignedDrop.addEventListener('click', () => {
+    if (!selectedUnitKey) {
+      return;
+    }
+    const unitKey = selectedUnitKey;
+    setSelectedUnit('');
+    clearUnitAssignment(unitKey);
+  });
+
   assignmentUnassignedDrop.addEventListener('dragover', handleUnassignedDragOver);
   assignmentUnassignedDrop.addEventListener('drop', handleUnassignedDrop);
   assignmentUnassignedDrop.addEventListener('dragleave', () => {
@@ -2300,6 +2475,7 @@ if (tableMap) {
   tableMap.addEventListener('pointerup', handleMapPointerUp);
   tableMap.addEventListener('pointercancel', handleMapPointerUp);
   tableMap.addEventListener('wheel', handleMapWheel, { passive: false });
+  tableMap.addEventListener('click', handleMapAssignClick);
   tableMap.addEventListener('dragover', handleMapDragOver);
   tableMap.addEventListener('drop', handleMapDrop);
   tableMap.addEventListener('dragleave', () => {
@@ -2334,6 +2510,12 @@ if (tableContextDeleteButton) {
 if (tableContextCancelButton) {
   tableContextCancelButton.addEventListener('click', () => {
     closeTableContextMenu();
+  });
+}
+
+if (assignmentSelectedCancel) {
+  assignmentSelectedCancel.addEventListener('click', () => {
+    setSelectedUnit('');
   });
 }
 

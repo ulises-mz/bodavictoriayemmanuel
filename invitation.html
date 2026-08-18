@@ -274,26 +274,80 @@
       <p class="rsvp__text">Por favor confirma tu asistencia antes del <strong>20 de septiembre de 2026</strong>.</p>
 
       <form class="rsvp__form" id="rsvp-form" novalidate>
-        <input type="text" name="fullName" class="rsvp__input" placeholder="Tu nombre completo (como aparece en la invitacion)" autocomplete="name" required />
-        <input type="email" name="email" class="rsvp__input" placeholder="Tu correo electronico" autocomplete="email" required />
-        <input type="text" name="groupName" class="rsvp__input" placeholder="Grupo o familia (ejemplo: Familia Perez)" required />
+        <fieldset class="rsvp-step">
+          <legend class="rsvp-step__legend"><span class="rsvp-step__num">1</span> Tus datos</legend>
 
-        <div class="rsvp__radio-group">
-          <label class="rsvp__radio">
-            <input type="radio" name="attend" value="yes" required /> Asistire con gusto
+          <label class="rsvp-field">
+            <span class="rsvp-field__label">Tu nombre completo</span>
+            <input type="text" name="fullName" class="rsvp__input" placeholder="Ejemplo: Maria Fernanda Rojas" autocomplete="name" required />
+            <span class="rsvp-field__help">Escribelo tal como aparece en tu invitacion.</span>
           </label>
-          <label class="rsvp__radio">
-            <input type="radio" name="attend" value="no" required /> No podre asistir
+
+          <label class="rsvp-field">
+            <span class="rsvp-field__label">Tu correo electronico</span>
+            <input type="email" name="email" class="rsvp__input" placeholder="ejemplo@correo.com" autocomplete="email" required />
+            <span class="rsvp-field__help">Con el podras editar tu respuesta mas adelante si algo cambia.</span>
           </label>
-        </div>
 
-        <div id="attendance-details-wrap" class="rsvp__group" hidden>
-          <input type="number" name="peopleCount" class="rsvp__input" placeholder="Numero total de personas que asistiran (incluyendote)" min="1" max="12" value="1" />
-          <textarea name="attendeeNames" class="rsvp__input rsvp__input--textarea rsvp__input--short" placeholder="Nombre y apellido de cada asistente (uno por linea)"></textarea>
-        </div>
+          <label class="rsvp-field">
+            <span class="rsvp-field__label">Familia o grupo</span>
+            <input type="text" name="groupName" class="rsvp__input" placeholder="Ejemplo: Familia Rojas" required />
+            <span class="rsvp-field__help">Nos ayuda a sentar juntas a las personas de tu grupo.</span>
+          </label>
+        </fieldset>
 
-        <input type="text" name="song" class="rsvp__input" placeholder="Cancion sugerida (opcional)" />
-        <textarea name="message" class="rsvp__input rsvp__input--textarea" placeholder="Dejanos un mensaje bonito (opcional)"></textarea>
+        <fieldset class="rsvp-step">
+          <legend class="rsvp-step__legend"><span class="rsvp-step__num">2</span> ¿Nos acompanas?</legend>
+
+          <div class="rsvp-choice">
+            <label class="rsvp-choice__card">
+              <input type="radio" name="attend" value="yes" required />
+              <span class="rsvp-choice__mark" aria-hidden="true">✓</span>
+              <span class="rsvp-choice__title">Si, asistire</span>
+              <span class="rsvp-choice__sub">¡Alli nos vemos!</span>
+            </label>
+
+            <label class="rsvp-choice__card rsvp-choice__card--no">
+              <input type="radio" name="attend" value="no" required />
+              <span class="rsvp-choice__mark" aria-hidden="true">✕</span>
+              <span class="rsvp-choice__title">No podre asistir</span>
+              <span class="rsvp-choice__sub">Te extranaremos</span>
+            </label>
+          </div>
+        </fieldset>
+
+        <fieldset class="rsvp-step" id="attendance-details-wrap" hidden>
+          <legend class="rsvp-step__legend"><span class="rsvp-step__num">3</span> ¿Quienes asistiran?</legend>
+
+          <div class="rsvp-field">
+            <span class="rsvp-field__label">Cuantas personas asistiran (incluyendote)</span>
+            <div class="rsvp-counter">
+              <button type="button" class="rsvp-counter__btn" id="people-minus" aria-label="Una persona menos">−</button>
+              <input type="number" name="peopleCount" id="people-count" class="rsvp__input rsvp-counter__value" min="1" max="12" value="1" inputmode="numeric" />
+              <button type="button" class="rsvp-counter__btn" id="people-plus" aria-label="Una persona mas">+</button>
+            </div>
+          </div>
+
+          <div class="rsvp-field">
+            <span class="rsvp-field__label">Nombre y apellido de cada persona</span>
+            <div id="attendee-names-list" class="rsvp-names"></div>
+            <span class="rsvp-field__help">Asi preparamos el lugar de cada quien con carino.</span>
+          </div>
+        </fieldset>
+
+        <fieldset class="rsvp-step rsvp-step--optional">
+          <legend class="rsvp-step__legend"><span class="rsvp-step__num">4</span> Opcional</legend>
+
+          <label class="rsvp-field">
+            <span class="rsvp-field__label">Una cancion que no puede faltar</span>
+            <input type="text" name="song" class="rsvp__input" placeholder="Cancion y artista" />
+          </label>
+
+          <label class="rsvp-field">
+            <span class="rsvp-field__label">Un mensaje para los novios</span>
+            <textarea name="message" class="rsvp__input rsvp__input--textarea" placeholder="Escribe aqui tus buenos deseos"></textarea>
+          </label>
+        </fieldset>
 
         <button type="submit" class="rsvp__btn">Confirmar asistencia</button>
       </form>

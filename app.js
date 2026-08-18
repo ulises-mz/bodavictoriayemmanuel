@@ -101,14 +101,14 @@ function openEnvelope() {
     const currentLetterBottom = wrapperRect.bottom; // env-contents is at bottom:0
     const riseY = targetLetterBottom - currentLetterBottom; // negative = up
 
-    // Initial state (no transition)
-    contents.style.transform = `translateY(0px)`;
+    // La distancia de subida se pasa como variable CSS: la animacion
+    // letterRise hace el recorrido con sobre-impulso y asentamiento.
+    contents.style.setProperty('--rise-y', `${riseY}px`);
 
     requestAnimationFrame(() => {
       requestAnimationFrame(() => {
         contents.classList.add('animating');
         contents.classList.add('risen');
-        contents.style.transform = `translateY(${riseY}px)`;
         wrapper.classList.add('opened');
       });
     });

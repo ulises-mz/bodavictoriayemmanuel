@@ -436,7 +436,9 @@ const fullNameInput = rsvpForm ? rsvpForm.querySelector('input[name="fullName"]'
 const emailInput = rsvpForm ? rsvpForm.querySelector('input[name="email"]') : null;
 const groupNameInput = rsvpForm ? rsvpForm.querySelector('input[name="groupName"]') : null;
 const peopleCountInput = rsvpForm ? rsvpForm.querySelector('input[name="peopleCount"]') : null;
-const attendeeNamesInput = rsvpForm ? rsvpForm.querySelector('textarea[name="attendeeNames"]') : null;
+const attendeeNamesList = document.getElementById('attendee-names-list');
+const peopleMinusButton = document.getElementById('people-minus');
+const peoplePlusButton = document.getElementById('people-plus');
 
 let existingRsvpRecord = null;
 let latestSavedRecord = null;
@@ -636,9 +638,70 @@ function setFormDisabled(disabled) {
   });
 }
 
+function getAttendeeInputValues() {
+  if (!attendeeNamesList) return [];
+  return Array.from(attendeeNamesList.querySelectorAll('input')).map((input) => input.value);
+}
+
+/* Genera un campo de nombre por persona: nunca puede haber diferencia
+   entre el numero de personas y los nombres escritos. */
+function renderAttendeeInputs(count, values = null) {
+  if (!attendeeNamesList) return;
+
+  const current = values || getAttendeeInputValues();
+  attendeeNamesList.innerHTML = '';
+
+  for (let i = 0; i < count; i += 1) {
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.name = 'attendeeName';
+    input.className = 'rsvp__input';
+    input.placeholder = i === 0 ? 'Persona 1 · tu nombre' : `Persona ${i + 1}`;
+    input.autocomplete = 'off';
+
+    let value = (current[i] || '').toString();
+    if (i === 0 && !value.trim() && fullNameInput) {
+      value = fullNameInput.value.trim();
+    }
+    input.value = value;
+
+    attendeeNamesList.appendChild(input);
+  }
+}
+
+function getPeopleCount() {
+  const raw = Number(peopleCountInput ? peopleCountInput.value : 1);
+  if (!Number.isFinite(raw)) return 1;
+  return Math.max(1, Math.min(12, Math.round(raw)));
+}
+
+function setPeopleCount(next) {
+  if (!peopleCountInput) return;
+  const clamped = Math.max(1, Math.min(12, Math.round(next)));
+  peopleCountInput.value = String(clamped);
+  renderAttendeeInputs(clamped);
+}
+
+if (peopleMinusButton) {
+  peopleMinusButton.addEventListener('click', () => setPeopleCount(getPeopleCount() - 1));
+}
+
+if (peoplePlusButton) {
+  peoplePlusButton.addEventListener('click', () => setPeopleCount(getPeopleCount() + 1));
+}
+
+if (peopleCountInput) {
+  peopleCountInput.addEventListener('change', () => setPeopleCount(getPeopleCount()));
+}
+
 function syncAttendanceFields() {
   const selected = document.querySelector('input[name="attend"]:checked');
   const showDetails = selected && selected.value === 'yes';
+
+  document.querySelectorAll('.rsvp-choice__card').forEach((card) => {
+    const input = card.querySelector('input');
+    card.classList.toggle('is-checked', Boolean(input && input.checked));
+  });
 
   if (attendanceDetailsWrap) {
     attendanceDetailsWrap.hidden = !showDetails;
@@ -646,17 +709,13 @@ function syncAttendanceFields() {
 
   if (peopleCountInput) {
     peopleCountInput.required = showDetails;
-    if (!showDetails) {
-      peopleCountInput.value = '0';
-    } else if (Number(peopleCountInput.value || 0) < 1) {
-      peopleCountInput.value = '1';
-    }
-  }
-
-  if (attendeeNamesInput) {
-    attendeeNamesInput.required = showDetails;
-    if (!showDetails) {
-      attendeeNamesInput.value = '';
+    if (showDetails) {
+      if (Number(peopleCountInput.value || 0) < 1) {
+        peopleCountInput.value = '1';
+      }
+      if (attendeeNamesList && !attendeeNamesList.children.length) {
+        renderAttendeeInputs(getPeopleCount());
+      }
     }
   }
 }
@@ -704,8 +763,11 @@ function parseRsvpPayload(formData) {
   const attend = (formData.get('attend') || '').toString();
   const rawPeopleCount = Number(formData.get('peopleCount') || 0);
   const peopleCount = Number.isFinite(rawPeopleCount) ? Math.round(rawPeopleCount) : 0;
-  const attendeeNamesRaw = (formData.get('attendeeNames') || '').toString();
-  const attendeeNames = splitAttendeeNames(attendeeNamesRaw);
+  const attendeeNames = formData
+    .getAll('attendeeName')
+    .map((value) => value.toString().trim())
+    .filter(Boolean);
+  const attendeeNamesRaw = attendeeNames.join('\n');
   const song = (formData.get('song') || '').toString().trim();
   const message = (formData.get('message') || '').toString().trim();
 
@@ -747,11 +809,14 @@ function validateRsvpPayload(payload) {
     }
 
     if (!payload.attendeeNames.length) {
-      return 'Escribe los nombres de las personas que asistiran.';
+      return 'Escribe el nombre de cada persona que asistira.';
     }
 
     if (payload.attendeeNames.length !== payload.peopleCount) {
-      return `El numero de nombres (${payload.attendeeNames.length}) no coincide con el total de personas (${payload.peopleCount}).`;
+      const missing = payload.peopleCount - payload.attendeeNames.length;
+      return missing > 0
+        ? `Falta escribir el nombre de ${missing} ${missing === 1 ? 'persona' : 'personas'} en el paso 3.`
+        : 'Hay mas nombres que personas: revisa el numero de personas en el paso 3.';
     }
   }
 
@@ -820,13 +885,14 @@ function fillRsvpForm(record) {
     input.checked = input.value === record.attend;
   });
 
+  const recordNames = record.attendeeNames || [];
+  const recordCount = Math.max(1, record.peopleCount || recordNames.length || 1);
+
   if (peopleCountInput) {
-    peopleCountInput.value = String(record.peopleCount || 0);
+    peopleCountInput.value = String(recordCount);
   }
 
-  if (attendeeNamesInput) {
-    attendeeNamesInput.value = (record.attendeeNames || []).join('\n');
-  }
+  renderAttendeeInputs(recordCount, recordNames);
 
   const songInput = rsvpForm.querySelector('input[name="song"]');
   if (songInput) {
