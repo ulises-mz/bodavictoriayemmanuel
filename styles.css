@@ -802,7 +802,7 @@ body.invitation-open {
   opacity: 0;
   transform:
     translate(-50%, -50%)
-    translateX(var(--bloom-x, 0px))
+    translate(var(--bloom-x, 0px), var(--bloom-y, 0px))
     scale(calc(var(--scale, 1) * 0.42))
     rotate(calc(var(--rotate, 0deg) + var(--bloom-tilt, 20deg)));
   transition:
@@ -922,14 +922,24 @@ body.invitation-open {
 /* ── Variante ligera (movil / reduced motion): mismas fases,
    menos sombra y tiempos un poco mas cortos ── */
 .floral-curtain--lite .floral-curtain__side {
-  width: 74%;
+  width: 78%;
   transition-duration: 0.85s;
 }
 
+/* En movil las capas de atras van sin sombra (baratas), pero el frente
+   conserva una sombra ligera para no perder la profundidad del arbusto. */
 .floral-curtain--lite .floral-curtain__img,
-.floral-curtain--lite .floral-curtain__sprig--back .floral-curtain__img,
-.floral-curtain--lite .floral-curtain__sprig--front .floral-curtain__img {
+.floral-curtain--lite .floral-curtain__sprig--back .floral-curtain__img {
   filter: none;
+}
+
+.floral-curtain--lite .floral-curtain__sprig--back .floral-curtain__img {
+  opacity: calc(var(--piece-opacity, 0.8) * 0.92);
+  animation: none;
+}
+
+.floral-curtain--lite .floral-curtain__sprig--front .floral-curtain__img {
+  filter: drop-shadow(0 6px 10px rgba(22, 33, 17, 0.2));
 }
 
 .floral-curtain--lite .floral-curtain__sprig {

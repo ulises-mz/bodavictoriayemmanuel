@@ -243,6 +243,7 @@ function buildCurtainSprig(side, layer, xNorm, yNorm, isLite) {
   sprig.style.setProperty('--d-exit', `${exitDelay.toFixed(2)}s`);
   sprig.style.setProperty('--bloom-dur', `${randomBetween(0.72, 1.02).toFixed(2)}s`);
   sprig.style.setProperty('--bloom-x', `${(direction * randomBetween(34, 70)).toFixed(1)}px`);
+  sprig.style.setProperty('--bloom-y', `${((Math.random() < 0.5 ? -1 : 1) * randomBetween(14, 36)).toFixed(1)}px`);
   sprig.style.setProperty('--bloom-tilt', `${(direction * randomBetween(12, 26)).toFixed(1)}deg`);
   sprig.style.setProperty('--exit-x', `${(direction * (40 + xNorm * 90)).toFixed(1)}px`);
   sprig.style.setProperty('--exit-tilt', `${(direction * randomBetween(6, 14)).toFixed(1)}deg`);
@@ -282,7 +283,7 @@ function populateCurtainSide(sideEl, side, isLite) {
     }
   }
 
-  const frontCount = Math.max(isLite ? 8 : 10, Math.round(viewportHeight / (viewportMin * 0.2)));
+  const frontCount = Math.max(isLite ? 10 : 10, Math.round(viewportHeight / (viewportMin * (isLite ? 0.17 : 0.2))));
   for (let i = 0; i < frontCount; i += 1) {
     const xNorm = randomBetween(0.55, 1.04);
     const yNorm = (i + 0.5) / frontCount;
@@ -356,8 +357,8 @@ function createFloralCurtain() {
   // Fases: cierre con brote en onda -> cambio de escena tras el velo ->
   // pausa breve con brisa -> apertura desde el centro con petalos.
   const revealDelay = isLite ? 950 : 1100;
-  const openDelay = isLite ? 1450 : 1700;
-  const cleanupDelay = isLite ? 2650 : 3050;
+  const openDelay = isLite ? 1550 : 1700;
+  const cleanupDelay = isLite ? 2800 : 3050;
 
   curtainState.revealTimer = setTimeout(() => {
     showInvitationOverlay();
@@ -383,9 +384,10 @@ function transitionToInvitation(event) {
   if (landingScene) landingScene.classList.add('transitioning');
 
   // Floral curtain closes, invitation is shown behind, then curtain opens.
+  // Arranque casi inmediato para que en movil se sienta responsivo al toque.
   setTimeout(() => {
     createFloralCurtain();
-  }, 260);
+  }, 140);
 }
 
 if (viewInvitation) {
