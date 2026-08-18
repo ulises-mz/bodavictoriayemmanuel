@@ -184,61 +184,138 @@ function cleanupFloralCurtain() {
   }
 }
 
-function buildCurtainPiece(side, row, col, rows, cols, options = {}) {
-  const isLite = Boolean(options.isLite);
-  const isFillLayer = Boolean(options.isFillLayer);
+function randomBetween(min, max) {
+  return min + Math.random() * (max - min);
+}
+
+/* Crea un ramillete de flores para el arbusto del telon.
+   xNorm: 0 = borde exterior de la pantalla, 1 = centro (borde interior).
+   layer: 'back' | 'mid' | 'front' controla tamano, nitidez y z-index. */
+function buildCurtainSprig(side, layer, xNorm, yNorm, isLite) {
   const viewportMin = Math.min(window.innerWidth, window.innerHeight);
-  const piece = document.createElement('img');
-  piece.className = `floral-curtain__piece floral-curtain__piece--${side}`;
+  const sprig = document.createElement('div');
+  sprig.className = `floral-curtain__sprig floral-curtain__sprig--${layer}`;
 
   const sourceSet = side === 'left'
     ? ['floral-1.webp', 'floral-3.webp', 'floral-2.webp', 'floral-4.webp']
     : ['floral-2.webp', 'floral-4.webp', 'floral-1.webp', 'floral-3.webp'];
 
-  const sourceIndex = (row * cols) + col;
-  piece.src = sourceSet[sourceIndex % sourceSet.length];
-  piece.alt = '';
-  piece.setAttribute('aria-hidden', 'true');
+  const img = document.createElement('img');
+  img.className = 'floral-curtain__img';
+  img.src = sourceSet[Math.floor(Math.random() * sourceSet.length)];
+  img.alt = '';
+  img.decoding = 'async';
+  img.setAttribute('aria-hidden', 'true');
+  sprig.appendChild(img);
 
-  const rowStep = 100 / rows;
-  const colStep = 100 / cols;
-  const layerOffset = isFillLayer ? 0.5 : 0;
-  const y = ((row + 0.5) * rowStep) + ((Math.random() - 0.5) * rowStep * 0.5);
-  const x = ((col + 0.5 + layerOffset) * colStep) + ((Math.random() - 0.5) * colStep * 0.62);
-  const scale = isFillLayer
-    ? (isLite ? 0.72 + Math.random() * 0.26 : 0.8 + Math.random() * 0.3)
-    : (isLite ? 0.86 + Math.random() * 0.28 : 0.98 + Math.random() * 0.34);
-  const baseRotation = side === 'left' ? -12 : 168;
-  const tilt = (Math.random() - 0.5) * 18;
-  const opacity = isFillLayer
-    ? (isLite ? 0.5 : 0.68)
-    : (isLite ? 0.74 : 0.9);
-  const baseSize = viewportMin * (isLite ? 0.26 : 0.31);
-  const sizeMultiplier = isFillLayer ? (0.76 + Math.random() * 0.25) : (0.9 + Math.random() * 0.35);
-  const sizePx = Math.max(120, Math.min(420, baseSize * sizeMultiplier));
-  const rotation = `${(baseRotation + tilt).toFixed(2)}deg`;
+  const sizeRange = {
+    back: [0.36, 0.52],
+    mid: [0.26, 0.38],
+    front: [0.16, 0.27],
+  }[layer];
+  const sizeScale = isLite ? 0.95 : 1;
+  const sizePx = Math.max(110, Math.min(560, viewportMin * randomBetween(sizeRange[0], sizeRange[1]) * sizeScale));
 
-  piece.style.top = `${Math.max(-6, Math.min(106, y)).toFixed(2)}%`;
-  piece.style.left = `${Math.max(-8, Math.min(108, x)).toFixed(2)}%`;
-  piece.style.setProperty('--piece-size', `${Math.round(sizePx)}px`);
-  piece.style.setProperty('--scale', scale.toFixed(2));
-  piece.style.setProperty('--rotate', rotation);
-  piece.style.setProperty('--piece-opacity', opacity.toFixed(2));
+  const opacity = {
+    back: randomBetween(0.72, 0.85),
+    mid: randomBetween(0.86, 0.96),
+    front: 1,
+  }[layer];
 
-  return piece;
+  // Posicion dentro del contenedor del lado: xNorm 0 -> exterior, 1 -> interior.
+  const xPercent = side === 'left' ? xNorm * 100 : (1 - xNorm) * 100;
+  const direction = side === 'left' ? -1 : 1;
+  const baseRotation = (side === 'left' ? -10 : 170) + randomBetween(-14, 14);
+
+  // Onda de cierre: el borde interior brota de ultimo; capas del frente un pelin despues.
+  const layerLag = { back: 0, mid: 0.07, front: 0.14 }[layer];
+  const entryDelay = xNorm * (isLite ? 0.3 : 0.38) + layerLag + Math.random() * 0.07;
+  // Apertura: el centro se aparta primero.
+  const exitDelay = (1 - xNorm) * 0.2 + Math.random() * 0.05;
+
+  sprig.style.top = `${Math.max(-8, Math.min(108, yNorm * 100 + randomBetween(-4, 4))).toFixed(2)}%`;
+  sprig.style.left = `${Math.max(-10, Math.min(110, xPercent + randomBetween(-5, 5))).toFixed(2)}%`;
+  sprig.style.setProperty('--piece-size', `${Math.round(sizePx)}px`);
+  sprig.style.setProperty('--piece-opacity', opacity.toFixed(2));
+  sprig.style.setProperty('--scale', randomBetween(0.92, 1.14).toFixed(2));
+  sprig.style.setProperty('--rotate', `${baseRotation.toFixed(2)}deg`);
+  sprig.style.setProperty('--d', `${entryDelay.toFixed(2)}s`);
+  sprig.style.setProperty('--d-exit', `${exitDelay.toFixed(2)}s`);
+  sprig.style.setProperty('--bloom-dur', `${randomBetween(0.72, 1.02).toFixed(2)}s`);
+  sprig.style.setProperty('--bloom-x', `${(direction * randomBetween(34, 70)).toFixed(1)}px`);
+  sprig.style.setProperty('--bloom-tilt', `${(direction * randomBetween(12, 26)).toFixed(1)}deg`);
+  sprig.style.setProperty('--exit-x', `${(direction * (40 + xNorm * 90)).toFixed(1)}px`);
+  sprig.style.setProperty('--exit-tilt', `${(direction * randomBetween(6, 14)).toFixed(1)}deg`);
+  sprig.style.setProperty('--breeze-amp', `${randomBetween(1.2, 2.8).toFixed(2)}deg`);
+  sprig.style.setProperty('--breeze-dur', `${randomBetween(1.7, 2.8).toFixed(2)}s`);
+  sprig.style.setProperty('--breeze-delay', `${(-Math.random() * 2.5).toFixed(2)}s`);
+
+  return sprig;
 }
 
-function getCurtainDensityConfig(isLite) {
-  const areaFactor = Math.max(0.8, Math.min(2.2, (window.innerWidth * window.innerHeight) / (1280 * 720)));
-  const baseRows = Math.round((isLite ? 4 : 5) + (areaFactor * 1.25));
-  const baseCols = Math.round((isLite ? 3 : 4) + (areaFactor * 1.15));
+/* Llena un lado con tres capas. Las filas se calculan segun la altura
+   real del viewport y se desfasan en patron de ladrillo para que no
+   queden bandas horizontales vacias: el arbusto debe verse tupido. */
+function populateCurtainSide(sideEl, side, isLite) {
+  const viewportHeight = window.innerHeight;
+  const viewportMin = Math.min(window.innerWidth, viewportHeight);
 
-  return {
-    baseRows,
-    baseCols,
-    fillRows: Math.max(3, baseRows - 1),
-    fillCols: Math.max(2, baseCols - 1),
-  };
+  const backRows = Math.max(3, Math.round(viewportHeight / (viewportMin * 0.33)));
+  const backCols = isLite ? 2 : 4;
+  for (let r = 0; r < backRows; r += 1) {
+    for (let c = 0; c < backCols; c += 1) {
+      const xNorm = (c + 0.5) / backCols;
+      const yNorm = (r + 0.5 + (c % 2) * 0.45) / (backRows + 0.45);
+      sideEl.appendChild(buildCurtainSprig(side, 'back', xNorm, yNorm, isLite));
+    }
+  }
+
+  const midRows = Math.max(4, Math.round(viewportHeight / (viewportMin * 0.25)));
+  const midCols = isLite ? 3 : 4;
+  for (let r = 0; r < midRows; r += 1) {
+    for (let c = 0; c < midCols; c += 1) {
+      // Sesgo hacia el borde interior para que el encuentro sea denso,
+      // con desfase por fila para romper la rejilla.
+      const xNorm = Math.pow((c + 0.5 + (r % 2) * 0.5) / (midCols + 0.5), 0.72);
+      const yNorm = (r + 0.5) / midRows;
+      sideEl.appendChild(buildCurtainSprig(side, 'mid', xNorm, yNorm, isLite));
+    }
+  }
+
+  const frontCount = Math.max(isLite ? 8 : 10, Math.round(viewportHeight / (viewportMin * 0.2)));
+  for (let i = 0; i < frontCount; i += 1) {
+    const xNorm = randomBetween(0.55, 1.04);
+    const yNorm = (i + 0.5) / frontCount;
+    sideEl.appendChild(buildCurtainSprig(side, 'front', xNorm, yNorm, isLite));
+  }
+}
+
+/* Petalos que caen de los arbustos cuando el telon se abre. */
+function addBurstPetals(root, isLite) {
+  const count = isLite ? 10 : 16;
+
+  for (let i = 0; i < count; i += 1) {
+    const petal = document.createElement('img');
+    petal.className = 'floral-curtain__burst-petal';
+    petal.src = 'petalo.webp';
+    petal.alt = '';
+    petal.decoding = 'async';
+    petal.setAttribute('aria-hidden', 'true');
+
+    const direction = i % 2 === 0 ? -1 : 1;
+    petal.style.left = `${randomBetween(38, 62).toFixed(1)}%`;
+    petal.style.top = `${randomBetween(16, 78).toFixed(1)}%`;
+    petal.style.setProperty('--bp-size', `${Math.round(randomBetween(15, 30))}px`);
+    petal.style.setProperty('--bp-alpha', randomBetween(0.5, 0.9).toFixed(2));
+    petal.style.setProperty('--bp-dur', `${randomBetween(0.75, 1).toFixed(2)}s`);
+    petal.style.setProperty('--bp-delay', `${randomBetween(0, 0.24).toFixed(2)}s`);
+    petal.style.setProperty('--bp-dx', `${(direction * randomBetween(25, 120)).toFixed(0)}px`);
+    petal.style.setProperty('--bp-dy', `${randomBetween(90, 210).toFixed(0)}px`);
+    petal.style.setProperty('--bp-rot-from', `${Math.round(Math.random() * 180)}deg`);
+    petal.style.setProperty('--bp-rot-to', `${Math.round(180 + Math.random() * 260)}deg`);
+
+    root.appendChild(petal);
+  }
 }
 
 function createFloralCurtain() {
@@ -247,7 +324,8 @@ function createFloralCurtain() {
   const root = document.createElement('div');
   root.className = 'floral-curtain';
 
-  const isLite = window.innerWidth <= 820 || window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const isLite = window.innerWidth <= 820 || reducedMotion;
   if (isLite) {
     root.classList.add('floral-curtain--lite');
   }
@@ -256,40 +334,30 @@ function createFloralCurtain() {
     <div class="floral-curtain__cover"></div>
     <div class="floral-curtain__side floral-curtain__side--left"></div>
     <div class="floral-curtain__side floral-curtain__side--right"></div>
-    <div class="floral-curtain__mist"></div>
   `;
 
-  const leftSide = root.querySelector('.floral-curtain__side--left');
-  const rightSide = root.querySelector('.floral-curtain__side--right');
-  const density = getCurtainDensityConfig(isLite);
+  populateCurtainSide(root.querySelector('.floral-curtain__side--left'), 'left', isLite);
+  populateCurtainSide(root.querySelector('.floral-curtain__side--right'), 'right', isLite);
 
-  for (let row = 0; row < density.baseRows; row += 1) {
-    for (let col = 0; col < density.baseCols; col += 1) {
-      leftSide.appendChild(buildCurtainPiece('left', row, col, density.baseRows, density.baseCols, { isLite }));
-      rightSide.appendChild(buildCurtainPiece('right', row, col, density.baseRows, density.baseCols, { isLite }));
-    }
-  }
-
-  for (let row = 0; row < density.fillRows; row += 1) {
-    for (let col = 0; col < density.fillCols; col += 1) {
-      leftSide.appendChild(buildCurtainPiece('left', row, col, density.fillRows, density.fillCols, { isLite, isFillLayer: true }));
-      rightSide.appendChild(buildCurtainPiece('right', row, col, density.fillRows, density.fillCols, { isLite, isFillLayer: true }));
-    }
+  if (!reducedMotion) {
+    addBurstPetals(root, isLite);
   }
 
   document.body.appendChild(root);
   curtainState.root = root;
 
-  // Delay start slightly to guarantee the closed-state animation is visible.
+  // Doble rAF para garantizar que el estado inicial se pinte antes de animar.
   requestAnimationFrame(() => {
     requestAnimationFrame(() => {
       root.classList.add('is-closing');
     });
   });
 
-  const revealDelay = isLite ? 620 : 760;
-  const openDelay = isLite ? 860 : 980;
-  const cleanupDelay = isLite ? 1520 : 1720;
+  // Fases: cierre con brote en onda -> cambio de escena tras el velo ->
+  // pausa breve con brisa -> apertura desde el centro con petalos.
+  const revealDelay = isLite ? 950 : 1100;
+  const openDelay = isLite ? 1450 : 1700;
+  const cleanupDelay = isLite ? 2650 : 3050;
 
   curtainState.revealTimer = setTimeout(() => {
     showInvitationOverlay();
