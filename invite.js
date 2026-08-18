@@ -13,19 +13,64 @@ const revealObserver = new IntersectionObserver(
 
 revealItems.forEach((item) => revealObserver.observe(item));
 
+// Revela cada paso de la ruta de forma individual (foto + texto escalonados).
+const stepRevealObserver = new IntersectionObserver(
+  (entries) => {
+    entries.forEach((entry) => {
+      if (!entry.isIntersecting) return;
+      entry.target.classList.add('is-shown');
+      stepRevealObserver.unobserve(entry.target);
+    });
+  },
+  { threshold: 0.18, rootMargin: '0px 0px -6% 0px' }
+);
+
+document.querySelectorAll('.memory-step').forEach((step) => stepRevealObserver.observe(step));
+
+// Carga diferida de fotos: la imagen se descarga solo cuando el elemento se
+// acerca al viewport y se aplica cuando ya esta decodificada (sin parpadeo).
+const lazyPhotoObserver = new IntersectionObserver(
+  (entries) => {
+    entries.forEach((entry) => {
+      if (!entry.isIntersecting) return;
+      const el = entry.target;
+      lazyPhotoObserver.unobserve(el);
+
+      const source = el.dataset.photo;
+      if (!source) return;
+
+      const loader = new Image();
+      loader.decoding = 'async';
+      loader.addEventListener('load', () => {
+        el.style.setProperty('--photo', `url('${source}')`);
+      });
+      loader.src = source;
+    });
+  },
+  { rootMargin: '600px 0px 600px 0px' }
+);
+
+document.querySelectorAll('[data-photo]').forEach((el) => lazyPhotoObserver.observe(el));
+
 const scrollProgress = document.getElementById('scroll-progress');
 const toTopButton = document.getElementById('to-top');
 
+let toTopVisible = false;
+
 function updateScrollUi() {
   const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
-  const progress = maxScroll > 0 ? (window.scrollY / maxScroll) * 100 : 0;
+  const progress = maxScroll > 0 ? window.scrollY / maxScroll : 0;
 
   if (scrollProgress) {
-    scrollProgress.style.width = `${Math.min(100, Math.max(0, progress))}%`;
+    scrollProgress.style.transform = `scaleX(${Math.min(1, Math.max(0, progress)).toFixed(4)})`;
   }
 
   if (toTopButton) {
-    toTopButton.classList.toggle('visible', window.scrollY > 420);
+    const shouldShow = window.scrollY > 420;
+    if (shouldShow !== toTopVisible) {
+      toTopVisible = shouldShow;
+      toTopButton.classList.toggle('visible', shouldShow);
+    }
   }
 }
 
@@ -39,7 +84,7 @@ if (toTopButton) {
 
 const textureStack = document.getElementById('texture-stack');
 const floralFlow = document.getElementById('floral-flow');
-const floralSources = ['floral-1.png', 'floral-2.png', 'floral-3.png', 'floral-4.png'];
+const floralSources = ['floral-1.webp', 'floral-2.webp', 'floral-3.webp', 'floral-4.webp'];
 let textureAspectRatio = 768 / 1408;
 
 let floralPlan = [];
@@ -179,6 +224,7 @@ function paintFloralsByScroll() {
     floralImg.className = 'floral-flow__img';
     floralImg.src = item.source;
     floralImg.alt = '';
+    floralImg.decoding = 'async';
     floralImg.setAttribute('aria-hidden', 'true');
 
     floralEl.appendChild(floralImg);
@@ -320,6 +366,17 @@ const countdownMinutes = document.getElementById('countdown-minutes');
 const countdownSeconds = document.getElementById('countdown-seconds');
 const countdownRing = document.getElementById('countdown-ring');
 
+// Actualiza el texto solo cuando cambia y dispara un pequeno pop animado.
+function setTickValue(el, value) {
+  if (!el || el.textContent === value) return;
+  el.textContent = value;
+  el.classList.add('tick-pop');
+}
+
+document.querySelectorAll('.hero__countdown p, .countdown-grid p, .countdown-ring__value').forEach((el) => {
+  el.addEventListener('animationend', () => el.classList.remove('tick-pop'));
+});
+
 function updateCountdown() {
   const now = new Date();
   const diff = Math.max(0, weddingDate - now);
@@ -330,15 +387,15 @@ function updateCountdown() {
   const minutes = Math.floor((totalSeconds % 3600) / 60);
   const seconds = totalSeconds % 60;
 
-  if (heroDays) heroDays.textContent = String(days);
-  if (heroHours) heroHours.textContent = String(hours).padStart(2, '0');
-  if (heroMinutes) heroMinutes.textContent = String(minutes).padStart(2, '0');
-  if (heroSeconds) heroSeconds.textContent = String(seconds).padStart(2, '0');
+  setTickValue(heroDays, String(days));
+  setTickValue(heroHours, String(hours).padStart(2, '0'));
+  setTickValue(heroMinutes, String(minutes).padStart(2, '0'));
+  setTickValue(heroSeconds, String(seconds).padStart(2, '0'));
 
-  if (countdownDays) countdownDays.textContent = String(days);
-  if (countdownHours) countdownHours.textContent = String(hours).padStart(2, '0');
-  if (countdownMinutes) countdownMinutes.textContent = String(minutes).padStart(2, '0');
-  if (countdownSeconds) countdownSeconds.textContent = String(seconds).padStart(2, '0');
+  setTickValue(countdownDays, String(days));
+  setTickValue(countdownHours, String(hours).padStart(2, '0'));
+  setTickValue(countdownMinutes, String(minutes).padStart(2, '0'));
+  setTickValue(countdownSeconds, String(seconds).padStart(2, '0'));
 
   if (countdownRing) {
     const totalRange = weddingDate - planningStart;
@@ -1060,9 +1117,9 @@ function updateRouteExperience() {
 
   if (routeProgress) {
     const progress = memorySteps.length > 1
-      ? (currentStepIndex / (memorySteps.length - 1)) * 100
-      : 100;
-    routeProgress.style.height = `${Math.max(0, Math.min(100, progress))}%`;
+      ? currentStepIndex / (memorySteps.length - 1)
+      : 1;
+    routeProgress.style.transform = `scaleY(${Math.max(0, Math.min(1, progress)).toFixed(4)})`;
   }
 }
 
@@ -1084,6 +1141,46 @@ function scheduleScrollWork() {
 window.addEventListener('scroll', scheduleScrollWork, { passive: true });
 scheduleScrollWork();
 
+// Petalos cayendo: pocos elementos, animaciones solo de transform (composited).
+// En pantallas pequenas el CSS oculta los sobrantes; reduced-motion los apaga.
+const petalLayer = document.getElementById('petal-fall');
+
+function buildPetals() {
+  if (!petalLayer) return;
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+  const petalCount = 9;
+  const fragment = document.createDocumentFragment();
+
+  for (let i = 0; i < petalCount; i += 1) {
+    const petal = document.createElement('div');
+    petal.className = 'petal-fall__petal';
+    petal.style.setProperty('--px', `${(i / petalCount) * 100 + Math.random() * 8}vw`);
+    petal.style.setProperty('--size', `${18 + Math.random() * 16}px`);
+    petal.style.setProperty('--petal-alpha', (0.34 + Math.random() * 0.3).toFixed(2));
+    petal.style.setProperty('--fall-duration', `${13 + Math.random() * 9}s`);
+    petal.style.setProperty('--fall-delay', `${-Math.random() * 20}s`);
+    petal.style.setProperty('--drift', `${(Math.random() * 12 - 6).toFixed(1)}vw`);
+    petal.style.setProperty('--spin-from', `${Math.round(Math.random() * 180)}deg`);
+    petal.style.setProperty('--spin-to', `${180 + Math.round(Math.random() * 240)}deg`);
+    petal.style.setProperty('--sway', `${10 + Math.round(Math.random() * 14)}px`);
+    petal.style.setProperty('--sway-duration', `${2.6 + Math.random() * 1.8}s`);
+
+    const petalImg = document.createElement('img');
+    petalImg.src = 'petalo.webp';
+    petalImg.alt = '';
+    petalImg.decoding = 'async';
+    petalImg.setAttribute('aria-hidden', 'true');
+
+    petal.appendChild(petalImg);
+    fragment.appendChild(petal);
+  }
+
+  petalLayer.appendChild(fragment);
+}
+
+buildPetals();
+
 const textureProbe = new Image();
 textureProbe.addEventListener('load', () => {
   if (!textureProbe.naturalWidth || !textureProbe.naturalHeight) return;
@@ -1092,4 +1189,4 @@ textureProbe.addEventListener('load', () => {
   initializeGeneratedBackground();
   scheduleScrollWork();
 });
-textureProbe.src = 'textura-2.png';
+textureProbe.src = 'textura-2.webp';

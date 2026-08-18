@@ -51,13 +51,15 @@ body {
   z-index: 0;
   width: 100%;
   height: var(--texture-tile-height, 100vh);
-  background-image: url('textura-2.png');
+  background-image: url('textura-2.webp');
   background-position: center top;
   background-repeat: repeat-y;
   background-size: 100% auto;
   opacity: var(--texture-tile-opacity, 0.56);
 }
 
+/* Velo central sin backdrop-filter: un gradiente plano pinta una sola vez
+   y evita el re-blur de toda la pagina en cada frame de scroll. */
 .texture-stack::before {
   content: '';
   position: absolute;
@@ -69,52 +71,22 @@ body {
   z-index: 2;
   pointer-events: none;
   background: linear-gradient(
-    to bottom,
-    rgba(247, 244, 238, 0.42),
-    rgba(247, 244, 238, 0.36)
-  );
-  -webkit-backdrop-filter: blur(12px) saturate(0.92);
-  backdrop-filter: blur(12px) saturate(0.92);
-  mask-image: linear-gradient(
     to right,
-    rgba(0, 0, 0, 0) 0%,
-    rgba(0, 0, 0, 1) 14%,
-    rgba(0, 0, 0, 1) 86%,
-    rgba(0, 0, 0, 0) 100%
+    rgba(247, 244, 238, 0) 0%,
+    rgba(247, 244, 238, 0.46) 14%,
+    rgba(247, 244, 238, 0.46) 86%,
+    rgba(247, 244, 238, 0) 100%
   );
-  -webkit-mask-image: linear-gradient(
-    to right,
-    rgba(0, 0, 0, 0) 0%,
-    rgba(0, 0, 0, 1) 14%,
-    rgba(0, 0, 0, 1) 86%,
-    rgba(0, 0, 0, 0) 100%
-  );
-}
-
-@supports not ((-webkit-backdrop-filter: blur(1px)) or (backdrop-filter: blur(1px))) {
-  .texture-stack::before {
-    background: linear-gradient(
-      to right,
-      rgba(247, 244, 238, 0) 0%,
-      rgba(247, 244, 238, 0.44) 14%,
-      rgba(247, 244, 238, 0.44) 86%,
-      rgba(247, 244, 238, 0) 100%
-    );
-    mask-image: none;
-    -webkit-mask-image: none;
-  }
 }
 
 @media (max-width: 900px) {
   .texture-stack::before {
     width: 108vw;
-    -webkit-backdrop-filter: blur(8px) saturate(0.9);
-    backdrop-filter: blur(8px) saturate(0.9);
     background: linear-gradient(
       to right,
       rgba(247, 244, 238, 0) 0%,
-      rgba(247, 244, 238, 0.34) 10%,
-      rgba(247, 244, 238, 0.34) 90%,
+      rgba(247, 244, 238, 0.4) 10%,
+      rgba(247, 244, 238, 0.4) 90%,
       rgba(247, 244, 238, 0) 100%
     );
   }
@@ -209,11 +181,13 @@ main,
 }
 
 .progress-fill {
-  width: 0;
+  width: 100%;
   height: 100%;
   background: linear-gradient(90deg, var(--sage-deep), var(--gold));
   box-shadow: 0 0 10px rgba(35, 52, 36, 0.35);
-  transition: width 0.12s linear;
+  transform: scaleX(0);
+  transform-origin: left center;
+  will-change: transform;
 }
 
 .to-top {
@@ -244,12 +218,59 @@ main,
 
 .hero {
   min-height: 100vh;
-  padding: clamp(5.2rem, 9vh, 7rem) 1.1rem 4.2rem;
+  min-height: 100svh;
+  padding: clamp(4.2rem, 8vh, 7rem) 1.1rem 4.2rem;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   text-align: center;
+}
+
+/* Entrada escalonada del hero: solo transform + opacity (composited). */
+.hero-enter {
+  opacity: 0;
+  animation: heroEnter 0.9s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  animation-delay: calc(var(--enter, 1) * 0.12s);
+}
+
+@keyframes heroEnter {
+  from {
+    opacity: 0;
+    transform: translateY(26px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.hero__portrait {
+  margin-top: 1.1rem;
+  width: clamp(178px, 42vw, 250px);
+  aspect-ratio: 3 / 4;
+  border-radius: 999px 999px 14px 14px;
+  overflow: hidden;
+  border: 1px solid rgba(189, 169, 125, 0.7);
+  box-shadow:
+    0 0 0 7px rgba(247, 244, 238, 0.55),
+    var(--shadow);
+  transform: translateZ(0);
+}
+
+.hero__portrait img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 26%;
+  display: block;
+  animation: kenBurns 22s ease-in-out infinite alternate;
+  will-change: transform;
+}
+
+@keyframes kenBurns {
+  from { transform: scale(1.02); }
+  to { transform: scale(1.12); }
 }
 
 .hero__mist {
@@ -444,6 +465,7 @@ main {
 .section {
   padding: clamp(3.5rem, 8vh, 6rem) clamp(0.95rem, 4.2vw, 2.6rem);
   position: relative;
+  scroll-margin-top: 3.4rem;
 }
 
 .section::before {
@@ -458,8 +480,10 @@ main {
 
 .reveal {
   opacity: 0;
-  transform: translateY(24px);
-  transition: opacity 0.75s ease, transform 0.75s ease;
+  transform: translateY(30px);
+  transition:
+    opacity 0.85s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.85s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .reveal.visible {
@@ -519,9 +543,13 @@ main {
   top: 0;
   left: 0;
   width: 100%;
-  height: 0;
+  height: 100%;
   background: linear-gradient(to bottom, var(--gold), var(--sage-mid));
   box-shadow: 0 0 10px rgba(62, 91, 62, 0.28);
+  transform: scaleY(0);
+  transform-origin: center top;
+  transition: transform 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: transform;
 }
 
 .memory-step {
@@ -572,18 +600,57 @@ main {
   min-height: clamp(220px, 34vw, 360px);
   border-radius: 1.35rem;
   background-image:
-    linear-gradient(135deg, rgba(247, 244, 238, 0.08), rgba(35, 52, 36, 0.35)),
-    var(--photo),
-    var(--fallback);
+    linear-gradient(135deg, rgba(247, 244, 238, 0.08), rgba(35, 52, 36, 0.3)),
+    var(--photo, url('textura-2.webp'));
   background-size: cover;
-  background-position: center;
+  background-position: var(--photo-pos, center);
   box-shadow: var(--shadow);
-  transform: translateY(var(--parallax, 0px)) scale(1.01);
-  transition: transform 0.18s linear;
+  opacity: 0;
+  transform: translate3d(var(--slide-x, 0px), calc(var(--parallax, 0px) + 34px), 0) scale(0.96);
+  transition:
+    opacity 0.9s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.9s cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: transform, opacity;
 }
 
-.scroll-lite .memory-step__media {
-  transition: transform 0.24s ease-out;
+.memory-step:nth-of-type(odd) .memory-step__media {
+  --slide-x: -26px;
+}
+
+.memory-step:nth-of-type(even) .memory-step__media {
+  --slide-x: 26px;
+}
+
+.memory-step.is-shown .memory-step__media {
+  --slide-x: 0px;
+  opacity: 1;
+  transform: translate3d(0, var(--parallax, 0px), 0) scale(1);
+}
+
+/* Cuando el paso esta activo, la foto respira un poco. */
+.memory-step.is-shown.is-active .memory-step__media {
+  transform: translate3d(0, var(--parallax, 0px), 0) scale(1.025);
+}
+
+/* Una vez visible, el transform corto da inercia suave al parallax sin costo:
+   el transform es composited y no repinta la pagina. */
+.memory-step.is-shown .memory-step__media {
+  transition:
+    opacity 0.9s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.memory-step__copy {
+  opacity: 0;
+  transform: translateY(26px);
+  transition:
+    opacity 0.9s cubic-bezier(0.22, 1, 0.36, 1) 0.12s,
+    transform 0.9s cubic-bezier(0.22, 1, 0.36, 1) 0.12s;
+}
+
+.memory-step.is-shown .memory-step__copy {
+  opacity: 1;
+  transform: translateY(0);
 }
 
 .memory-step__copy {
@@ -871,6 +938,30 @@ main {
   animation: fadeUp 0.5s ease both;
 }
 
+.quote__medallion {
+  margin: 1.05rem auto 0;
+  width: clamp(128px, 30vw, 168px);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  border: 1px solid rgba(189, 169, 125, 0.75);
+  box-shadow:
+    0 0 0 6px rgba(247, 244, 238, 0.6),
+    var(--shadow);
+  background-image: var(--photo, url('textura-2.webp'));
+  background-size: cover;
+  background-position: center 55%;
+  opacity: 0;
+  transform: scale(0.82);
+  transition:
+    opacity 0.9s cubic-bezier(0.22, 1, 0.36, 1) 0.15s,
+    transform 0.9s cubic-bezier(0.22, 1, 0.36, 1) 0.15s;
+}
+
+.reveal.visible .quote__medallion {
+  opacity: 1;
+  transform: scale(1);
+}
+
 .quote__line {
   margin-top: 0.68rem;
   font-family: 'Great Vibes', cursive;
@@ -1146,6 +1237,60 @@ main {
   to { opacity: 1; transform: translateY(0); }
 }
 
+/* Digitos del contador: pequeno pop al cambiar (solo transform). */
+.tick-pop {
+  animation: tickPop 0.42s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@keyframes tickPop {
+  0% { transform: translateY(-6px) scale(1.12); opacity: 0.35; }
+  100% { transform: translateY(0) scale(1); opacity: 1; }
+}
+
+/* Petalos cayendo: capa fija, transform-only, pointer-events none. */
+.petal-fall {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 5;
+}
+
+.petal-fall__petal {
+  position: absolute;
+  top: -8vh;
+  left: var(--px, 50vw);
+  width: var(--size, 26px);
+  opacity: var(--petal-alpha, 0.5);
+  animation: petalFall var(--fall-duration, 14s) linear infinite;
+  animation-delay: var(--fall-delay, 0s);
+  will-change: transform;
+}
+
+.petal-fall__petal img {
+  width: 100%;
+  height: auto;
+  display: block;
+  animation: petalSway var(--sway-duration, 3.4s) ease-in-out infinite alternate;
+  animation-delay: var(--fall-delay, 0s);
+}
+
+@keyframes petalFall {
+  from { transform: translate3d(0, -10vh, 0) rotate(var(--spin-from, 0deg)); }
+  to { transform: translate3d(var(--drift, 4vw), 112vh, 0) rotate(var(--spin-to, 220deg)); }
+}
+
+@keyframes petalSway {
+  from { transform: translateX(calc(var(--sway, 16px) * -1)) rotate(-8deg); }
+  to { transform: translateX(var(--sway, 16px)) rotate(8deg); }
+}
+
+@media (max-width: 680px) {
+  .petal-fall__petal:nth-child(n + 7) {
+    display: none;
+  }
+}
+
 @media (max-width: 900px) {
   .hero h1,
   .hero p,
@@ -1290,13 +1435,26 @@ main {
   .event-grid {
     grid-template-columns: 1fr;
   }
+
+  /* Entre 681-900px el nav se parte en dos filas: mas margen para anclas. */
+  .section {
+    scroll-margin-top: 6.4rem;
+  }
+}
+
+@media (max-width: 680px) {
+  .section {
+    scroll-margin-top: 3.4rem;
+  }
 }
 
 @media (max-width: 680px) {
   .quick-nav {
     justify-content: flex-start;
+    flex-wrap: nowrap;
     overflow-x: auto;
     scrollbar-width: thin;
+    -webkit-overflow-scrolling: touch;
   }
 
   .quick-nav__link {
@@ -1334,5 +1492,13 @@ main {
     animation: none !important;
     transition: none !important;
     scroll-behavior: auto !important;
+  }
+
+  .hero-enter {
+    opacity: 1;
+  }
+
+  .petal-fall {
+    display: none;
   }
 }

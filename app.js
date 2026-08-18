@@ -192,8 +192,8 @@ function buildCurtainPiece(side, row, col, rows, cols, options = {}) {
   piece.className = `floral-curtain__piece floral-curtain__piece--${side}`;
 
   const sourceSet = side === 'left'
-    ? ['floral-1.png', 'floral-3.png', 'floral-2.png', 'floral-4.png']
-    : ['floral-2.png', 'floral-4.png', 'floral-1.png', 'floral-3.png'];
+    ? ['floral-1.webp', 'floral-3.webp', 'floral-2.webp', 'floral-4.webp']
+    : ['floral-2.webp', 'floral-4.webp', 'floral-1.webp', 'floral-3.webp'];
 
   const sourceIndex = (row * cols) + col;
   piece.src = sourceSet[sourceIndex % sourceSet.length];

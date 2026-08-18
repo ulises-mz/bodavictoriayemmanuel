@@ -3,10 +3,13 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#efe8dc" />
   <title>Emanuel & Victoria — Invitacion</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Great+Vibes&family=Montserrat:wght@200;300;400;500&display=swap" rel="stylesheet" />
+  <link rel="preload" as="image" href="novios-6.jpg" fetchpriority="high" />
+  <link rel="preload" as="image" href="textura-2.webp" />
   <link rel="stylesheet" href="invite.css" />
 </head>
 <body>
@@ -18,23 +21,29 @@
 
   <div class="texture-stack" id="texture-stack" aria-hidden="true"></div>
   <div class="floral-flow" id="floral-flow" aria-hidden="true"></div>
+  <div class="petal-fall" id="petal-fall" aria-hidden="true"></div>
 
   <header class="hero" id="inicio">
-    <p class="hero__kicker">Con la bendicion de Dios y el amor que nos une</p>
-    <h1 class="hero__names">Emanuel <span>&</span> Victoria</h1>
-    <p class="hero__line">Tenemos el honor de invitarte a celebrar el dia en que uniremos nuestras vidas en matrimonio.</p>
+    <p class="hero__kicker hero-enter" style="--enter: 1;">Con la bendicion de Dios y el amor que nos une</p>
+    <h1 class="hero__names hero-enter" style="--enter: 2;">Emanuel <span>&</span> Victoria</h1>
 
-    <div class="hero__date-wrap">
-      <p class="hero__date">10 • Octubre • 2026</p>
-      <p class="hero__time">Ceremonia 1:30 PM · Recepcion 3:30 PM</p>
+    <div class="hero__portrait hero-enter" style="--enter: 3;">
+      <img src="novios-6.jpg" alt="Emanuel y Victoria" fetchpriority="high" decoding="async" />
     </div>
 
-    <div class="hero__actions">
+    <p class="hero__line hero-enter" style="--enter: 4;">Tenemos el honor de invitarte a celebrar el dia en que uniremos nuestras vidas en matrimonio.</p>
+
+    <div class="hero__date-wrap hero-enter" style="--enter: 5;">
+      <p class="hero__date">10 • Octubre • 2026</p>
+      <p class="hero__time">Ceremonia 1:30 PM · Recepcion 3:30 PM · Finaliza 8:30 PM</p>
+    </div>
+
+    <div class="hero__actions hero-enter" style="--enter: 6;">
       <a class="hero__btn hero__btn--solid" href="#ruta">Ver ruta interactiva</a>
       <a class="hero__btn" href="#rsvp">Confirmar asistencia</a>
     </div>
 
-    <div class="hero__countdown" aria-label="Cuenta regresiva principal">
+    <div class="hero__countdown hero-enter" style="--enter: 7;" aria-label="Cuenta regresiva principal">
       <article>
         <p id="hero-days">0</p>
         <span>Dias</span>
@@ -53,7 +62,7 @@
       </article>
     </div>
 
-    <div class="scroll-hint" aria-hidden="true">
+    <div class="scroll-hint hero-enter" style="--enter: 8;" aria-hidden="true">
       <span>Desplazate</span>
       <div class="scroll-hint__arrow"></div>
     </div>
@@ -72,7 +81,6 @@
     <section class="section reveal route" id="ruta">
       <h2 class="section__title">Ruta de Nuestra Historia</h2>
       <p class="section__lead">Mientras haces scroll, se va revelando nuestra ruta de recuerdos de forma inmersiva.</p>
-      <p class="route__hint">Estas fotos son temporales y ya estan guardadas en esta carpeta como novios-1.jpg a novios-5.jpg. Luego las reemplazas por las suyas.</p>
 
       <div class="route__shell">
         <div class="route__line" aria-hidden="true">
@@ -81,7 +89,7 @@
 
         <article class="memory-step" data-step>
           <button type="button" class="memory-step__dot" aria-label="Ir al recuerdo 1"></button>
-          <div class="memory-step__media" data-depth="0.16" style="--photo: url('novios-1.jpg'); --fallback: url('textura-2.png');" role="img" aria-label="Primer encuentro"></div>
+          <div class="memory-step__media" data-depth="0.16" data-photo="novios-1.jpg" style="--photo-pos: center 30%;" role="img" aria-label="Emanuel y Victoria entre las montanas"></div>
           <div class="memory-step__copy">
             <p class="memory-step__label">Capitulo 1</p>
             <h3>Primer Encuentro</h3>
@@ -91,7 +99,7 @@
 
         <article class="memory-step" data-step>
           <button type="button" class="memory-step__dot" aria-label="Ir al recuerdo 2"></button>
-          <div class="memory-step__media" data-depth="0.12" style="--photo: url('novios-2.jpg'); --fallback: url('textura-2.png');" role="img" aria-label="Momentos compartidos"></div>
+          <div class="memory-step__media" data-depth="0.12" data-photo="novios-2.jpg" style="--photo-pos: center 45%;" role="img" aria-label="Nuestro recuerdo en una fotografia"></div>
           <div class="memory-step__copy">
             <p class="memory-step__label">Capitulo 2</p>
             <h3>Nuestros Momentos</h3>
@@ -101,7 +109,7 @@
 
         <article class="memory-step" data-step>
           <button type="button" class="memory-step__dot" aria-label="Ir al recuerdo 3"></button>
-          <div class="memory-step__media" data-depth="0.18" style="--photo: url('novios-3.jpg'); --fallback: url('textura-2.png');" role="img" aria-label="Nuestro compromiso"></div>
+          <div class="memory-step__media" data-depth="0.18" data-photo="novios-3.jpg" style="--photo-pos: center 55%;" role="img" aria-label="El anillo de compromiso tomados de la mano"></div>
           <div class="memory-step__copy">
             <p class="memory-step__label">Capitulo 3</p>
             <h3>El Si de Nuestro Corazon</h3>
@@ -111,7 +119,7 @@
 
         <article class="memory-step" data-step>
           <button type="button" class="memory-step__dot" aria-label="Ir al recuerdo 4"></button>
-          <div class="memory-step__media" data-depth="0.14" style="--photo: url('novios-4.jpg'); --fallback: url('textura-2.png');" role="img" aria-label="Preparativos de boda"></div>
+          <div class="memory-step__media" data-depth="0.14" data-photo="novios-4.jpg" style="--photo-pos: center 40%;" role="img" aria-label="Victoria recostada en el hombro de Emanuel"></div>
           <div class="memory-step__copy">
             <p class="memory-step__label">Capitulo 4</p>
             <h3>Preparando Nuestro Gran Dia</h3>
@@ -121,7 +129,7 @@
 
         <article class="memory-step" data-step>
           <button type="button" class="memory-step__dot" aria-label="Ir al recuerdo 5"></button>
-          <div class="memory-step__media" data-depth="0.2" style="--photo: url('novios-5.jpg'); --fallback: url('textura-2.png');" role="img" aria-label="Nos casamos"></div>
+          <div class="memory-step__media" data-depth="0.2" data-photo="novios-5.jpg" style="--photo-pos: center 40%;" role="img" aria-label="Emanuel y Victoria sonriendo al atardecer"></div>
           <div class="memory-step__copy">
             <p class="memory-step__label">Capitulo Final</p>
             <h3>Nos Casamos</h3>
@@ -138,7 +146,7 @@
       <div class="event-grid">
         <article class="event-panel" id="ceremony-panel">
           <figure class="event-panel__thumb-wrap">
-            <img class="event-panel__thumb" src="parroquia.jpg" alt="Parroquia Llanos de Santa Lucia" loading="lazy" />
+            <img class="event-panel__thumb" src="parroquia.webp" alt="Parroquia Llanos de Santa Lucia" loading="lazy" decoding="async" />
           </figure>
           <p class="event-panel__time">Ceremonia · 1:30 PM</p>
           <h3 class="event-panel__title">Parroquia Llanos de Santa Lucia</h3>
@@ -151,11 +159,11 @@
 
         <article class="event-panel" id="reception-panel">
           <figure class="event-panel__thumb-wrap">
-            <img class="event-panel__thumb" src="rescate.png" alt="Sala de Eventos Rescate" loading="lazy" />
+            <img class="event-panel__thumb" src="rescate.webp" alt="Sala de Eventos Rescate" loading="lazy" decoding="async" />
           </figure>
-          <p class="event-panel__time">Recepcion · 3:30 PM</p>
+          <p class="event-panel__time">Recepcion · 3:30 PM — 8:30 PM</p>
           <h3 class="event-panel__title">Sala de Eventos Rescate</h3>
-          <p class="event-panel__text">Despues de la ceremonia, celebremos juntos con alegria, musica y una noche inolvidable.</p>
+          <p class="event-panel__text">Despues de la ceremonia, celebremos juntos con alegria, musica y una tarde inolvidable. La actividad finaliza a las 8:30 PM.</p>
           <div class="event-panel__actions">
             <a class="map-link" href="https://maps.app.goo.gl/WJtkjTQBSdKbBQnj6?g_st=aw" target="_blank" rel="noopener noreferrer">Abrir en Google Maps</a>
             <button type="button" class="map-copy" data-url="https://maps.app.goo.gl/WJtkjTQBSdKbBQnj6?g_st=aw">Copiar ubicacion</button>
@@ -213,6 +221,7 @@
 
     <section class="section reveal quote" id="frase">
       <h2 class="section__title">Frase Especial</h2>
+      <div class="quote__medallion" data-photo="novios-7.jpg" role="img" aria-label="Anillo de compromiso sobre sus manos"></div>
       <p class="quote__line">"El amor todo lo puede, todo lo espera y todo lo soporta."</p>
       <p class="quote__verse">1 Corintios 13</p>
       <p class="quote__note">Para nosotros, lo mas importante de este gran dia es compartir nuestra union frente a Dios. Los esperamos con mucha ilusion para ser testigos de nuestra promesa de amor.</p>
