@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&family=Sora:wght@400;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="panel-novios.css?v=20260819c" />
+  <link rel="stylesheet" href="panel-novios.css?v=20260819d" />
 </head>
 <body>
   <div class="dashboard-bg dashboard-bg--a" aria-hidden="true"></div>
@@ -46,6 +46,14 @@
         <p id="stat-declined">0</p>
         <span>No asistiran</span>
       </article>
+    </section>
+
+    <section id="news-banner" class="news-banner" role="status" aria-live="polite" hidden>
+      <div class="news-banner__text">
+        <p class="news-banner__title" id="news-title"></p>
+        <p class="news-banner__names" id="news-names"></p>
+      </div>
+      <button type="button" id="news-dismiss" class="btn btn--mini btn--soft">Marcar como visto</button>
     </section>
 
     <nav class="panel-tabs" id="panel-tabs" role="tablist" aria-label="Secciones del panel">
@@ -87,61 +95,88 @@
     <section class="tab-panel" id="tab-mesas" role="tabpanel" aria-labelledby="tab-btn-mesas" hidden>
       <article class="panel-card panel-card--planner">
         <div class="panel-head panel-head--stack">
-          <h2>Planificador de mesas</h2>
-          <p>Agrega mesas manuales, asigna grupos y acomoda un croquis movible.</p>
+          <h2>Mesas</h2>
+          <p>Crea las mesas, acomoda a tus invitados y revisa como queda el salon.</p>
         </div>
 
         <form id="table-plan-form" class="planner-form" novalidate>
-          <section class="planner-step planner-step--setup" aria-labelledby="planner-step-setup-title">
-            <div class="planner-step__head">
-              <span class="planner-step__index">Paso 1</span>
-              <h3 id="planner-step-setup-title">Configura tus mesas</h3>
-              <p>Agrega mesas una por una o genera una base inicial para luego ajustarla.</p>
+          <!-- Resumen siempre visible: cuantas mesas, cuantos asientos y
+               cuanta gente falta por sentar. -->
+          <section class="planner-summary" aria-label="Resumen del acomodo">
+            <div class="planner-summary__stat">
+              <p id="summary-tables">0</p>
+              <span>Mesas</span>
             </div>
-
-            <div class="planner-manual-grid">
-              <label>
-                <span>Nombre de mesa</span>
-                <input type="text" name="tableLabel" maxlength="40" placeholder="Mesa Jardin" />
-              </label>
-
-              <label>
-                <span>Capacidad</span>
-                <input type="number" name="tableCapacity" min="1" max="30" value="8" required />
-              </label>
-
-              <button type="button" id="table-add-btn" class="btn btn--secondary">Agregar mesa</button>
+            <div class="planner-summary__stat">
+              <p id="summary-seats">0</p>
+              <span>Asientos</span>
             </div>
-
-            <div class="planner-uniform-grid">
-              <label>
-                <span>Numero de mesas</span>
-                <input type="number" name="tableCount" min="1" max="60" value="12" />
-              </label>
-
-              <label>
-                <span>Asientos por mesa</span>
-                <input type="number" name="seatsPerTable" min="1" max="30" value="8" />
-              </label>
-
-              <button type="button" id="table-generate-uniform" class="btn btn--neutral">Generar base uniforme</button>
+            <div class="planner-summary__stat">
+              <p id="summary-seated">0</p>
+              <span>Acomodados</span>
             </div>
-
-            <p class="planner-step__hint">Tip: puedes cambiar nombres y capacidades de cada mesa antes de acomodar invitados.</p>
-            <div id="table-config-list" class="table-config-list"></div>
+            <div class="planner-summary__stat planner-summary__stat--pending">
+              <p id="summary-pending">0</p>
+              <span>Por acomodar</span>
+            </div>
           </section>
 
-          <section class="planner-step planner-step--assign" aria-labelledby="planner-step-assign-title">
-            <div class="planner-step__head">
-              <span class="planner-step__index">Paso 2</span>
-              <h3 id="planner-step-assign-title">Panel de asignacion</h3>
-              <p>Asigna por familia, por persona o genera acomodo automatico y luego ajusta arrastrando.</p>
+          <div class="planner-progress" aria-hidden="true">
+            <span id="planner-progress-fill"></span>
+          </div>
+
+          <!-- Un solo lugar para crear mesas. -->
+          <details class="planner-block" id="planner-setup-block">
+            <summary class="planner-block__summary">
+              <span class="planner-block__title">1 · Crear mesas</span>
+              <span class="planner-block__hint" id="setup-summary-hint">Empieza aqui</span>
+            </summary>
+
+            <div class="planner-block__body">
+              <div class="planner-create">
+                <label>
+                  <span>Nombre (opcional)</span>
+                  <input type="text" name="tableLabel" maxlength="40" placeholder="Mesa Jardin" />
+                </label>
+                <label>
+                  <span>Asientos</span>
+                  <input type="number" name="tableCapacity" min="1" max="30" value="8" required />
+                </label>
+                <button type="button" id="table-add-btn" class="btn btn--secondary">Agregar mesa</button>
+              </div>
+
+              <p class="planner-or">o crea varias de una vez</p>
+
+              <div class="planner-create">
+                <label>
+                  <span>Cuantas mesas</span>
+                  <input type="number" name="tableCount" min="1" max="60" value="12" />
+                </label>
+                <label>
+                  <span>Asientos c/u</span>
+                  <input type="number" name="seatsPerTable" min="1" max="30" value="8" />
+                </label>
+                <button type="button" id="table-generate-uniform" class="btn btn--neutral">Crear todas</button>
+              </div>
+
+              <div class="planner-tables-head">
+                <h4>Tus mesas</h4>
+                <button type="button" id="table-plan-reset" class="btn btn--mini btn--danger-soft">Limpiar todo</button>
+              </div>
+              <p class="planner-step__hint">Cambia el nombre o los asientos aqui. El tamano y la forma se ajustan con el boton ✎ de cada mesa en el croquis.</p>
+              <div id="table-config-list" class="table-config-list"></div>
+            </div>
+          </details>
+
+          <section class="planner-block planner-block--open" aria-labelledby="planner-step-assign-title">
+            <div class="planner-block__summary planner-block__summary--static">
+              <span class="planner-block__title" id="planner-step-assign-title">2 · Acomodar invitados</span>
             </div>
 
             <div id="assignment-mode-tabs" class="assignment-mode-tabs" role="tablist" aria-label="Modo de asignacion">
               <button type="button" class="assignment-mode-tab" data-mode="group">Por familia</button>
               <button type="button" class="assignment-mode-tab" data-mode="individual">Por persona</button>
-              <button type="button" class="assignment-mode-tab assignment-mode-tab--auto" id="assignment-auto-btn" data-mode="auto">Automatico</button>
+              <button type="button" class="assignment-mode-tab assignment-mode-tab--auto" id="assignment-auto-btn" data-mode="auto">Acomodar solo</button>
             </div>
 
             <p id="planner-mode-hint" class="planner-mode-hint"></p>
@@ -221,19 +256,7 @@
             </div>
           </section>
 
-          <section class="planner-step planner-step--run" aria-labelledby="planner-step-run-title">
-            <div class="planner-step__head">
-              <span class="planner-step__index">Paso 3</span>
-              <h3 id="planner-step-run-title">Genera y revisa</h3>
-              <p>Valida pendientes, cupo y distribucion final. Puedes limpiar el plan cuando quieras.</p>
-            </div>
-
-            <div class="planner-actions">
-              <button type="button" id="table-plan-reset" class="btn btn--danger-soft">Limpiar plan</button>
-            </div>
-
-            <p id="table-plan-explainer" class="table-plan-explainer"></p>
-          </section>
+          <p id="table-plan-explainer" class="table-plan-explainer"></p>
         </form>
 
         <p id="table-plan-status" class="table-plan-status" hidden></p>
@@ -263,7 +286,7 @@
     </section>
   </main>
 
-  <script src="rsvp-api.js?v=20260819c"></script>
-  <script src="panel-novios.js?v=20260819c"></script>
+  <script src="rsvp-api.js?v=20260819d"></script>
+  <script src="panel-novios.js?v=20260819d"></script>
 </body>
 </html>

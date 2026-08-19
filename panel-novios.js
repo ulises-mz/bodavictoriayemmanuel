@@ -162,6 +162,12 @@ async function loadRsvpRecordsFromServer() {
   rsvpRecordsCache = records
     .map((record) => normalizeStoredRecord(record))
     .filter((record) => record.fullName);
+
+  // La primera visita fija la linea base: a partir de aqui todo lo que
+  // llegue se marca como nuevo.
+  if (!readLastSeen() && rsvpRecordsCache.length) {
+    markEverythingSeen(rsvpRecordsCache);
+  }
 }
 
 function setTablePlanStatus(message, type = 'success') {
@@ -872,7 +878,14 @@ function renderGroupedList(groups, query = '') {
 
   visibleGroups.forEach((group) => {
     const card = createElement('article', 'group-item');
-    card.appendChild(createElement('h3', '', group.groupName));
+    const heading = createElement('h3', '', group.groupName);
+
+    if (newGroupKeys.has(group.key)) {
+      card.classList.add('is-new');
+      heading.appendChild(createElement('span', 'group-item__new-tag', 'Nuevo'));
+    }
+
+    card.appendChild(heading);
     card.appendChild(createElement('p', 'group-meta', `Hogares: ${group.households} · Personas: ${group.seats}`));
     card.appendChild(createElement('p', 'group-names', `Integrantes: ${group.names.join(', ')}`));
     groupedList.appendChild(card);
@@ -1065,17 +1078,8 @@ function renderTableConfigList(planResult) {
     capacityInput.value = String(table.capacity);
     capacityInput.dataset.tableId = table.id;
 
-    const sizeInput = document.createElement('input');
-    sizeInput.type = 'number';
-    sizeInput.className = 'table-config-size';
-    sizeInput.min = '60';
-    sizeInput.max = '200';
-    sizeInput.step = '5';
-    sizeInput.value = String(table.size || 100);
-    sizeInput.dataset.tableId = table.id;
-
-    const ratioInput = createRatioSelect('table-config-ratio', table.id, table.ratio || '1:1');
-
+    // El tamano y la forma se ajustan desde el croquis (boton ✎): aqui
+    // solo lo esencial para que la lista se lea de un vistazo.
     const removeButton = createElement('button', 'btn btn--mini btn--danger-soft', 'Eliminar');
     removeButton.type = 'button';
     removeButton.dataset.action = 'remove-table';
@@ -1083,8 +1087,6 @@ function renderTableConfigList(planResult) {
 
     grid.appendChild(labelInput);
     grid.appendChild(capacityInput);
-    grid.appendChild(sizeInput);
-    grid.appendChild(ratioInput);
     grid.appendChild(removeButton);
 
     item.appendChild(grid);
@@ -1092,7 +1094,7 @@ function renderTableConfigList(planResult) {
       createElement(
         'p',
         'table-config-meta',
-        `Mesa ${index + 1} · Ocupacion actual: ${occupied}/${table.capacity} · Tamano ${table.size || 100}% · Relacion ${table.ratio || '1:1'}`
+        `${occupied} de ${table.capacity} asientos ocupados`
       )
     );
 
@@ -1579,6 +1581,43 @@ function syncTableTabCount() {
   if (element) element.textContent = String(plannerState.tables.length);
 }
 
+/* Resumen del acomodo: mesas, asientos, cuantos ya estan sentados y
+   cuantos faltan, con barra de avance. */
+function renderPlannerSummary(planResult) {
+  const setText = (id, value) => {
+    const element = document.getElementById(id);
+    if (element) element.textContent = String(value);
+  };
+
+  const totalSeats = plannerState.tables.reduce((total, table) => total + table.capacity, 0);
+  const seated = planResult.assignedGuests || 0;
+  const pending = Math.max(0, (planResult.totalGuests || 0) - seated);
+
+  setText('summary-tables', plannerState.tables.length);
+  setText('summary-seats', totalSeats);
+  setText('summary-seated', seated);
+  setText('summary-pending', pending);
+
+  const fill = document.getElementById('planner-progress-fill');
+  if (fill) {
+    const ratio = planResult.totalGuests ? seated / planResult.totalGuests : 0;
+    fill.style.transform = `scaleX(${Math.max(0, Math.min(1, ratio)).toFixed(4)})`;
+  }
+
+  const setupHint = document.getElementById('setup-summary-hint');
+  if (setupHint) {
+    setupHint.textContent = plannerState.tables.length
+      ? `${plannerState.tables.length} ${plannerState.tables.length === 1 ? 'mesa' : 'mesas'} · ${totalSeats} asientos`
+      : 'Empieza aqui';
+  }
+
+  // La configuracion se abre sola mientras no haya mesas.
+  const setupBlock = document.getElementById('planner-setup-block');
+  if (setupBlock && !plannerState.tables.length) {
+    setupBlock.open = true;
+  }
+}
+
 function renderPlanner(statusMessage = '', statusType = 'success') {
   syncTableTabCount();
   plannerState.tables = sanitizePlannerTables(plannerState.tables);
@@ -1596,6 +1635,7 @@ function renderPlanner(statusMessage = '', statusType = 'success') {
   const planResult = buildPlannerPlan(activeUnits, plannerState.tables, plannerState.assignments);
 
   syncUniformInputs();
+  renderPlannerSummary(planResult);
   renderTableConfigList(planResult);
   renderManualAssignmentList(planResult, activeUnits);
   renderTableMap(planResult);
@@ -2349,6 +2389,7 @@ async function refreshDashboard(statusMessage = '', statusType = 'success') {
   cachedGroups = buildGuestGroups(records);
   cachedIndividuals = buildGuestIndividuals(records);
 
+  renderNewsBanner(records);
   renderStats(records, cachedGroups);
   renderGroupedList(cachedGroups, groupSearchInput ? groupSearchInput.value : '');
   renderExtras(records);
@@ -2609,6 +2650,97 @@ if (tableContextDeleteButton) {
 if (tableContextCancelButton) {
   tableContextCancelButton.addEventListener('click', () => {
     closeTableContextMenu();
+  });
+}
+
+/* ── Confirmaciones nuevas desde la ultima visita ──
+   Se compara la fecha de cada confirmacion con la marca guardada al
+   salir; asi Victoria ve de inmediato que llego sin revisar la lista. */
+const LAST_SEEN_STORAGE_KEY = 'ev-panel-last-seen';
+const newsBanner = document.getElementById('news-banner');
+const newsTitle = document.getElementById('news-title');
+const newsNames = document.getElementById('news-names');
+const newsDismiss = document.getElementById('news-dismiss');
+
+let newGroupKeys = new Set();
+
+function readLastSeen() {
+  try {
+    return localStorage.getItem(LAST_SEEN_STORAGE_KEY) || '';
+  } catch (error) {
+    return '';
+  }
+}
+
+function writeLastSeen(value) {
+  try {
+    localStorage.setItem(LAST_SEEN_STORAGE_KEY, value);
+  } catch (error) {
+    // Ignore storage errors.
+  }
+}
+
+function getRecordTimestamp(record) {
+  return record.updatedAt || record.createdAt || '';
+}
+
+function renderNewsBanner(records) {
+  if (!newsBanner || !newsTitle || !newsNames) return;
+
+  const lastSeen = readLastSeen();
+  newGroupKeys = new Set();
+
+  // Primera visita: no hay nada "nuevo" que destacar todavia.
+  if (!lastSeen) {
+    newsBanner.hidden = true;
+    return;
+  }
+
+  const fresh = records.filter((record) => {
+    const timestamp = getRecordTimestamp(record);
+    return timestamp && timestamp > lastSeen;
+  });
+
+  if (!fresh.length) {
+    newsBanner.hidden = true;
+    return;
+  }
+
+  fresh.forEach((record) => {
+    newGroupKeys.add(record.normalizedGroupName || record.normalizedFullName);
+  });
+
+  const people = fresh
+    .filter((record) => record.attend === 'yes')
+    .reduce((total, record) => total + (record.peopleCount || 0), 0);
+
+  newsTitle.textContent = fresh.length === 1
+    ? `1 confirmacion nueva${people ? ` · ${people} ${people === 1 ? 'persona' : 'personas'}` : ''}`
+    : `${fresh.length} confirmaciones nuevas${people ? ` · ${people} personas` : ''}`;
+
+  newsNames.textContent = fresh
+    .map((record) => `${record.fullName}${record.attend === 'no' ? ' (no asistira)' : ''}`)
+    .join(' · ');
+
+  newsBanner.hidden = false;
+}
+
+function markEverythingSeen(records) {
+  const latest = records
+    .map((record) => getRecordTimestamp(record))
+    .filter(Boolean)
+    .sort()
+    .pop();
+
+  writeLastSeen(latest || new Date().toISOString());
+}
+
+if (newsDismiss) {
+  newsDismiss.addEventListener('click', () => {
+    markEverythingSeen(readRsvpRecords());
+    newGroupKeys = new Set();
+    if (newsBanner) newsBanner.hidden = true;
+    renderGroupedList(cachedGroups, groupSearchInput ? groupSearchInput.value : '');
   });
 }
 
