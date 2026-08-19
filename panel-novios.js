@@ -1,4 +1,9 @@
 const PANEL_SESSION_KEY = 'ev-couple-panel-auth';
+/* Igual que el login: el panel siempre vive en su propia pagina. */
+if (window.top !== window.self) {
+  window.top.location.href = window.location.href;
+}
+
 const PANEL_LOGIN_ROUTE = 'panel-login.html';
 const TABLE_PLAN_STORAGE_KEY = 'ev-table-plan-v1';
 const TABLE_RATIO_PRESETS = ['1:1', '1:2', '2:1', '3:2', '2:3'];
@@ -39,6 +44,9 @@ const tableMap = document.getElementById('table-map');
 const assignmentModeTabs = document.getElementById('assignment-mode-tabs');
 const assignmentAutoButton = document.getElementById('assignment-auto-btn');
 const assignmentUnassignedDrop = document.getElementById('assignment-unassigned-drop');
+const panelSyncState = document.getElementById('panel-sync-state');
+const songsList = document.getElementById('songs-list');
+const messagesList = document.getElementById('messages-list');
 const assignmentSelectedBanner = document.getElementById('assignment-selected-banner');
 const assignmentSelectedText = document.getElementById('assignment-selected-text');
 const assignmentSelectedCancel = document.getElementById('assignment-selected-cancel');
@@ -131,6 +139,10 @@ function normalizeStoredRecord(record) {
     peopleCount,
     attendeeNames,
     groupName,
+    song: (record?.song || '').toString().trim(),
+    message: (record?.message || '').toString().trim(),
+    createdAt: (record?.createdAt || '').toString(),
+    updatedAt: (record?.updatedAt || '').toString(),
     normalizedGroupName: normalizeName(groupName),
     normalizedFullName: normalizeName(fullName),
   };
@@ -865,6 +877,47 @@ function renderGroupedList(groups, query = '') {
     card.appendChild(createElement('p', 'group-names', `Integrantes: ${group.names.join(', ')}`));
     groupedList.appendChild(card);
   });
+}
+
+/* Canciones sugeridas y mensajes escritos por los invitados al confirmar. */
+function renderExtras(records) {
+  if (songsList) {
+    clearChildren(songsList);
+
+    const songs = records.filter((record) => record.song);
+
+    if (!songs.length) {
+      songsList.appendChild(
+        createElement('p', 'empty-note', 'Aun no hay canciones sugeridas.')
+      );
+    } else {
+      songs.forEach((record) => {
+        const item = createElement('article', 'extras-item');
+        item.appendChild(createElement('p', 'extras-item__main', record.song));
+        item.appendChild(createElement('p', 'extras-item__by', record.fullName));
+        songsList.appendChild(item);
+      });
+    }
+  }
+
+  if (messagesList) {
+    clearChildren(messagesList);
+
+    const messages = records.filter((record) => record.message);
+
+    if (!messages.length) {
+      messagesList.appendChild(
+        createElement('p', 'empty-note', 'Aun no hay mensajes de los invitados.')
+      );
+    } else {
+      messages.forEach((record) => {
+        const item = createElement('article', 'extras-item');
+        item.appendChild(createElement('p', 'extras-item__quote', `“${record.message}”`));
+        item.appendChild(createElement('p', 'extras-item__by', record.fullName));
+        messagesList.appendChild(item);
+      });
+    }
+  }
 }
 
 function renderDeclinedList(records) {
@@ -2235,7 +2288,24 @@ function handleMapContextMenu(event) {
   openTableContextMenu(tableId);
 }
 
+function setSyncState(message, type = 'info') {
+  if (!panelSyncState) return;
+
+  panelSyncState.textContent = message;
+  panelSyncState.dataset.type = type;
+  panelSyncState.classList.toggle('is-visible', Boolean(message));
+}
+
+function formatSyncTime(date) {
+  return date.toLocaleTimeString('es-CR', { hour: '2-digit', minute: '2-digit' });
+}
+
+let isRefreshing = false;
+
 async function refreshDashboard(statusMessage = '', statusType = 'success') {
+  if (isRefreshing) return;
+  isRefreshing = true;
+
   const savedPlan = loadPlanConfig();
   if (savedPlan) {
     plannerState = {
@@ -2247,13 +2317,27 @@ async function refreshDashboard(statusMessage = '', statusType = 'success') {
   }
 
   let fetchErrorMessage = '';
-  setTablePlanStatus('Cargando confirmaciones...', 'success');
+  setSyncState('Buscando confirmaciones...', 'info');
+
+  if (refreshButton) {
+    refreshButton.disabled = true;
+    refreshButton.textContent = 'Actualizando...';
+  }
 
   try {
     await loadRsvpRecordsFromServer();
+    setSyncState(`Actualizado a las ${formatSyncTime(new Date())}`, 'success');
   } catch (error) {
     fetchErrorMessage = 'No se pudieron cargar las confirmaciones. Revisa tu conexion a internet y toca "Actualizar".';
+    setSyncState('Sin conexion. Toca Actualizar para reintentar.', 'error');
   }
+
+  if (refreshButton) {
+    refreshButton.disabled = false;
+    refreshButton.textContent = 'Actualizar';
+  }
+
+  isRefreshing = false;
 
   const records = readRsvpRecords();
   cachedGroups = buildGuestGroups(records);
@@ -2261,6 +2345,7 @@ async function refreshDashboard(statusMessage = '', statusType = 'success') {
 
   renderStats(records, cachedGroups);
   renderGroupedList(cachedGroups, groupSearchInput ? groupSearchInput.value : '');
+  renderExtras(records);
   renderDeclinedList(records);
 
   renderPlanner(

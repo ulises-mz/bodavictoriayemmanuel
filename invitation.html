@@ -34,7 +34,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Great+Vibes&family=Montserrat:wght@200;300;400;500&display=swap" rel="stylesheet" />
   <link rel="preload" as="image" href="novios-6.jpg" fetchpriority="high" />
   <link rel="preload" as="image" href="textura-2.webp" />
-  <link rel="stylesheet" href="invite.css?v=20260819a" />
+  <link rel="stylesheet" href="invite.css?v=20260819b" />
 </head>
 <body>
   <div class="progress-track" aria-hidden="true">
@@ -393,10 +393,13 @@
   <footer class="footer">
     <p class="footer__names">E &amp; V</p>
     <p class="footer__year">2026</p>
-    <p class="footer__admin"><a href="panel-login.html">Acceso novios</a></p>
+    <!-- target="_top": la invitacion puede estar dentro del iframe de la
+         portada; el panel debe abrirse en su propia pagina para que al
+         recargar no vuelva al sobre. -->
+    <p class="footer__admin"><a href="panel-login.html" target="_top">Acceso novios</a></p>
   </footer>
 
-  <script src="rsvp-api.js?v=20260819a"></script>
-  <script src="invite.js?v=20260819a"></script>
+  <script src="rsvp-api.js?v=20260819b"></script>
+  <script src="invite.js?v=20260819b"></script>
 </body>
 </html>

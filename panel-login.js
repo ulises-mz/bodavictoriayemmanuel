@@ -1,3 +1,10 @@
+/* Si el login quedo dentro del iframe de la portada, se sale a la
+   pagina completa: asi la URL del navegador es la del panel y recargar
+   no devuelve al sobre. */
+if (window.top !== window.self) {
+  window.top.location.href = window.location.href;
+}
+
 const PANEL_SESSION_KEY = 'ev-couple-panel-auth';
 const PANEL_CREDENTIALS = {
   email: 'novios@boda.com',

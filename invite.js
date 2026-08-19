@@ -118,41 +118,50 @@ function getTextureTileHeight() {
   return Math.max(180, widthBasedHeight);
 }
 
-function buildTextureStack() {
+/* El alto del documento cambia cuando aparece contenido nuevo (por
+   ejemplo el resumen del RSVP al confirmar). El fondo se EXTIENDE en vez
+   de reconstruirse, asi nunca queda una franja sin textura ni saltan las
+   flores que ya estan pintadas. */
+let textureTileCount = 0;
+let textureTileStep = 0;
+let textureTileBoxHeight = 0;
+
+function buildTextureStack(extendOnly = false) {
   if (!textureStack) return;
 
-  const tileHeight = Math.max(1, getTextureTileHeight());
-  const tileOverlap = window.innerWidth <= 680 ? 12 : 8;
-  const tileStep = Math.max(1, tileHeight - tileOverlap);
   const canvasHeight = getBackgroundCanvasHeight();
-  const tileCount = Math.max(2, Math.ceil((canvasHeight + tileOverlap) / tileStep) + 1);
+
+  if (!extendOnly) {
+    const tileHeight = Math.max(1, getTextureTileHeight());
+    const tileOverlap = window.innerWidth <= 680 ? 12 : 8;
+    textureTileStep = Math.max(1, tileHeight - tileOverlap);
+    textureTileBoxHeight = tileHeight + tileOverlap;
+    textureTileCount = 0;
+    textureStack.innerHTML = '';
+    textureStack.style.setProperty('--texture-tile-height', `${textureTileBoxHeight}px`);
+    textureStack.style.setProperty('--texture-tile-opacity', window.innerWidth <= 680 ? '0.48' : '0.56');
+  }
+
+  if (textureTileStep <= 0) return;
 
   textureStack.style.setProperty('--texture-height', `${canvasHeight}px`);
-  textureStack.style.setProperty('--texture-tile-height', `${tileHeight + tileOverlap}px`);
-  textureStack.style.setProperty('--texture-tile-opacity', window.innerWidth <= 680 ? '0.48' : '0.56');
-  textureStack.innerHTML = '';
 
-  for (let i = 0; i < tileCount; i += 1) {
+  const neededTiles = Math.max(2, Math.ceil((canvasHeight + textureTileBoxHeight) / textureTileStep) + 1);
+
+  for (let i = textureTileCount; i < neededTiles; i += 1) {
     const tile = document.createElement('div');
     tile.className = 'texture-stack__tile';
-    tile.style.top = `${Math.round(i * tileStep)}px`;
-    tile.style.height = `${tileHeight + tileOverlap}px`;
+    tile.style.top = `${Math.round(i * textureTileStep)}px`;
+    tile.style.height = `${textureTileBoxHeight}px`;
     textureStack.appendChild(tile);
   }
+
+  textureTileCount = Math.max(textureTileCount, neededTiles);
 }
 
-function buildFloralPlan() {
-  if (!floralFlow) return;
-
-  const viewportHeight = Math.max(1, window.innerHeight);
-  const canvasHeight = getBackgroundCanvasHeight();
-  const spacing = Math.max(140, viewportHeight * (useLightScrollEffects ? 0.34 : 0.28));
-  const floralCount = useLightScrollEffects
-    ? Math.max(24, Math.ceil(canvasHeight / spacing) + 7)
-    : Math.max(40, Math.ceil(canvasHeight / spacing) + 14);
-
-  floralPlan = [];
-  for (let i = 0; i < floralCount; i += 1) {
+function createFloralPlanItem(index, spacing, viewportHeight) {
+  const i = index;
+  {
     const source = floralSources[Math.floor(Math.random() * floralSources.length)];
     const lane = i % 4;
     const y = Math.round((i + 0.8) * spacing + (Math.random() - 0.5) * viewportHeight * 0.16);
@@ -174,7 +183,7 @@ function buildFloralPlan() {
     const floatDelay = -Math.random() * 6;
     const layer = lane === 0 || lane === 3 ? 3 : 1;
 
-    floralPlan.push({
+    return {
       source,
       y,
       xVw,
@@ -186,14 +195,42 @@ function buildFloralPlan() {
       depth,
       floatDuration,
       floatDelay,
-    });
+    };
+  }
+}
+
+function getFloralSpacing(viewportHeight) {
+  return Math.max(140, viewportHeight * (useLightScrollEffects ? 0.34 : 0.28));
+}
+
+function getFloralCountForHeight(canvasHeight, spacing) {
+  return useLightScrollEffects
+    ? Math.max(24, Math.ceil(canvasHeight / spacing) + 7)
+    : Math.max(40, Math.ceil(canvasHeight / spacing) + 14);
+}
+
+function buildFloralPlan(extendOnly = false) {
+  if (!floralFlow) return;
+
+  const viewportHeight = Math.max(1, window.innerHeight);
+  const canvasHeight = getBackgroundCanvasHeight();
+  const spacing = getFloralSpacing(viewportHeight);
+  const floralCount = getFloralCountForHeight(canvasHeight, spacing);
+
+  if (!extendOnly) {
+    floralPlan = [];
+    floralFlow.innerHTML = '';
+    floralCursor = 0;
+    renderedFlorals = [];
+    floralParallaxDisabled = false;
+  }
+
+  // Solo se agregan los ramilletes que faltan para cubrir el alto actual.
+  for (let i = floralPlan.length; i < floralCount; i += 1) {
+    floralPlan.push(createFloralPlanItem(i, spacing, viewportHeight));
   }
 
   floralFlow.style.setProperty('--texture-height', `${canvasHeight}px`);
-  floralFlow.innerHTML = '';
-  floralCursor = 0;
-  renderedFlorals = [];
-  floralParallaxDisabled = false;
 }
 
 function paintFloralsByScroll() {
@@ -272,6 +309,31 @@ function initializeGeneratedBackground() {
   buildTextureStack();
   buildFloralPlan();
   paintFloralsByScroll();
+  lastBackgroundHeight = getBackgroundCanvasHeight();
+}
+
+/* Extiende el fondo cuando el documento crece (confirmar el RSVP, abrir
+   el resumen, etc.) sin repintar lo que ya se ve. */
+let lastBackgroundHeight = 0;
+
+function syncBackgroundHeight() {
+  const canvasHeight = getBackgroundCanvasHeight();
+
+  if (Math.abs(canvasHeight - lastBackgroundHeight) < 24) {
+    return;
+  }
+
+  lastBackgroundHeight = canvasHeight;
+  buildTextureStack(true);
+  buildFloralPlan(true);
+  paintFloralsByScroll();
+}
+
+if (typeof ResizeObserver !== 'undefined') {
+  const bodyResizeObserver = new ResizeObserver(() => {
+    requestAnimationFrame(syncBackgroundHeight);
+  });
+  bodyResizeObserver.observe(document.body);
 }
 
 initializeGeneratedBackground();

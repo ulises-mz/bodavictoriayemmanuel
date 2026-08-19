@@ -882,6 +882,87 @@ h1 {
   vertical-align: middle;
 }
 
+/* ── Estado de sincronizacion ── */
+.panel-sync-state {
+  margin: 0;
+  align-self: center;
+  font-family: 'Sora', sans-serif;
+  font-size: 0.62rem;
+  letter-spacing: 0.08em;
+  color: #4f6d56;
+  opacity: 0;
+  transition: opacity 0.25s ease;
+}
+
+.panel-sync-state.is-visible {
+  opacity: 1;
+}
+
+.panel-sync-state[data-type='error'] {
+  color: #8a3b3b;
+}
+
+/* ── Canciones y mensajes de los invitados ── */
+.extras-grid {
+  margin-top: 0.66rem;
+  display: grid;
+  gap: 0.66rem;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+}
+
+.extras-block {
+  border: 1px solid rgba(182, 167, 136, 0.42);
+  border-radius: 0.84rem;
+  background: rgba(255, 255, 255, 0.72);
+  padding: 0.7rem;
+}
+
+.extras-block__title {
+  margin: 0 0 0.5rem;
+  font-family: 'Sora', sans-serif;
+  font-size: 0.76rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #2d4436;
+}
+
+.extras-list {
+  display: grid;
+  gap: 0.44rem;
+  max-height: 340px;
+  overflow-y: auto;
+}
+
+.extras-item {
+  border-left: 3px solid rgba(64, 104, 78, 0.5);
+  background: rgba(255, 255, 255, 0.9);
+  padding: 0.52rem 0.62rem;
+}
+
+.extras-item__main {
+  margin: 0;
+  font-size: 0.98rem;
+  line-height: 1.45;
+  color: #24372b;
+}
+
+.extras-item__quote {
+  margin: 0;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  font-style: italic;
+  color: #24372b;
+}
+
+.extras-item__by {
+  margin: 0.26rem 0 0;
+  font-family: 'Sora', sans-serif;
+  font-size: 0.58rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #5d6d60;
+}
+
 /* ── Asignacion por toque ── */
 .manual-assignment-item {
   cursor: pointer;

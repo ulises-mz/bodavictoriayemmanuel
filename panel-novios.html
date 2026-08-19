@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&family=Sora:wght@400;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="panel-novios.css?v=20260818a" />
+  <link rel="stylesheet" href="panel-novios.css?v=20260819b" />
 </head>
 <body>
   <div class="dashboard-bg dashboard-bg--a" aria-hidden="true"></div>
@@ -22,9 +22,10 @@
       </div>
 
       <div class="dashboard-actions">
+        <p id="panel-sync-state" class="panel-sync-state" role="status" aria-live="polite"></p>
         <button id="panel-refresh-btn" class="btn btn--soft" type="button">Actualizar</button>
         <button id="panel-logout-btn" class="btn" type="button">Cerrar sesion</button>
-        <a class="btn btn--link" href="invitation.html">Ver invitacion</a>
+        <a class="btn btn--link" href="invitation.html" target="_top">Ver invitacion</a>
       </div>
     </header>
 
@@ -212,6 +213,25 @@
       </article>
     </section>
 
+    <section class="panel-card panel-card--extras">
+      <div class="panel-head panel-head--stack">
+        <h2>Canciones y mensajes</h2>
+        <p>Lo que los invitados escribieron al confirmar: sugerencias musicales para la fiesta y mensajes para ustedes.</p>
+      </div>
+
+      <div class="extras-grid">
+        <article class="extras-block">
+          <h3 class="extras-block__title">Canciones sugeridas</h3>
+          <div id="songs-list" class="extras-list"></div>
+        </article>
+
+        <article class="extras-block">
+          <h3 class="extras-block__title">Mensajes para los novios</h3>
+          <div id="messages-list" class="extras-list"></div>
+        </article>
+      </div>
+    </section>
+
     <section class="panel-card panel-card--declined">
       <div class="panel-head panel-head--stack">
         <h2>No asistiran</h2>
@@ -221,7 +241,7 @@
     </section>
   </main>
 
-  <script src="rsvp-api.js?v=20260819a"></script>
-  <script src="panel-novios.js?v=20260819a"></script>
+  <script src="rsvp-api.js?v=20260819b"></script>
+  <script src="panel-novios.js?v=20260819b"></script>
 </body>
 </html>
