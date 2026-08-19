@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&family=Sora:wght@400;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="panel-novios.css?v=20260819b" />
+  <link rel="stylesheet" href="panel-novios.css?v=20260819c" />
 </head>
 <body>
   <div class="dashboard-bg dashboard-bg--a" aria-hidden="true"></div>
@@ -48,7 +48,25 @@
       </article>
     </section>
 
-    <section class="dashboard-grid">
+    <nav class="panel-tabs" id="panel-tabs" role="tablist" aria-label="Secciones del panel">
+      <button type="button" class="panel-tab" role="tab" data-tab="invitados" id="tab-btn-invitados" aria-controls="tab-invitados" aria-selected="true">
+        <span class="panel-tab__icon" aria-hidden="true">👥</span>
+        <span class="panel-tab__label">Invitados</span>
+        <span class="panel-tab__count" id="tab-count-invitados">0</span>
+      </button>
+      <button type="button" class="panel-tab" role="tab" data-tab="mesas" id="tab-btn-mesas" aria-controls="tab-mesas" aria-selected="false">
+        <span class="panel-tab__icon" aria-hidden="true">🪑</span>
+        <span class="panel-tab__label">Mesas</span>
+        <span class="panel-tab__count" id="tab-count-mesas">0</span>
+      </button>
+      <button type="button" class="panel-tab" role="tab" data-tab="detalles" id="tab-btn-detalles" aria-controls="tab-detalles" aria-selected="false">
+        <span class="panel-tab__icon" aria-hidden="true">💌</span>
+        <span class="panel-tab__label">Canciones y mensajes</span>
+        <span class="panel-tab__count" id="tab-count-detalles">0</span>
+      </button>
+    </nav>
+
+    <section class="tab-panel is-active" id="tab-invitados" role="tabpanel" aria-labelledby="tab-btn-invitados">
       <article class="panel-card panel-card--guests">
         <div class="panel-head">
           <h2>Invitados por grupo</h2>
@@ -57,6 +75,16 @@
         <div id="grouped-list" class="grouped-list"></div>
       </article>
 
+      <article class="panel-card panel-card--declined">
+        <div class="panel-head panel-head--stack">
+          <h2>No asistiran</h2>
+          <p>Confirmaciones marcadas como no asistencia.</p>
+        </div>
+        <div id="declined-list" class="declined-list"></div>
+      </article>
+    </section>
+
+    <section class="tab-panel" id="tab-mesas" role="tabpanel" aria-labelledby="tab-btn-mesas" hidden>
       <article class="panel-card panel-card--planner">
         <div class="panel-head panel-head--stack">
           <h2>Planificador de mesas</h2>
@@ -213,35 +241,29 @@
       </article>
     </section>
 
-    <section class="panel-card panel-card--extras">
-      <div class="panel-head panel-head--stack">
-        <h2>Canciones y mensajes</h2>
-        <p>Lo que los invitados escribieron al confirmar: sugerencias musicales para la fiesta y mensajes para ustedes.</p>
-      </div>
+    <section class="tab-panel" id="tab-detalles" role="tabpanel" aria-labelledby="tab-btn-detalles" hidden>
+      <article class="panel-card panel-card--extras">
+        <div class="panel-head panel-head--stack">
+          <h2>Canciones y mensajes</h2>
+          <p>Lo que los invitados escribieron al confirmar: sugerencias musicales para la fiesta y mensajes para ustedes.</p>
+        </div>
 
-      <div class="extras-grid">
-        <article class="extras-block">
-          <h3 class="extras-block__title">Canciones sugeridas</h3>
-          <div id="songs-list" class="extras-list"></div>
-        </article>
+        <div class="extras-grid">
+          <article class="extras-block">
+            <h3 class="extras-block__title">Canciones sugeridas</h3>
+            <div id="songs-list" class="extras-list"></div>
+          </article>
 
-        <article class="extras-block">
-          <h3 class="extras-block__title">Mensajes para los novios</h3>
-          <div id="messages-list" class="extras-list"></div>
-        </article>
-      </div>
-    </section>
-
-    <section class="panel-card panel-card--declined">
-      <div class="panel-head panel-head--stack">
-        <h2>No asistiran</h2>
-        <p>Confirmaciones marcadas como no asistencia.</p>
-      </div>
-      <div id="declined-list" class="declined-list"></div>
+          <article class="extras-block">
+            <h3 class="extras-block__title">Mensajes para los novios</h3>
+            <div id="messages-list" class="extras-list"></div>
+          </article>
+        </div>
+      </article>
     </section>
   </main>
 
-  <script src="rsvp-api.js?v=20260819b"></script>
-  <script src="panel-novios.js?v=20260819b"></script>
+  <script src="rsvp-api.js?v=20260819c"></script>
+  <script src="panel-novios.js?v=20260819c"></script>
 </body>
 </html>

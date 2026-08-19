@@ -1574,7 +1574,13 @@ function renderAssignmentModeTabs() {
   });
 }
 
+function syncTableTabCount() {
+  const element = document.getElementById('tab-count-mesas');
+  if (element) element.textContent = String(plannerState.tables.length);
+}
+
 function renderPlanner(statusMessage = '', statusType = 'success') {
+  syncTableTabCount();
   plannerState.tables = sanitizePlannerTables(plannerState.tables);
   plannerState.assignmentMode = sanitizeAssignmentMode(plannerState.assignmentMode);
   plannerState.view = sanitizeMapView(plannerState.view);
@@ -2347,6 +2353,7 @@ async function refreshDashboard(statusMessage = '', statusType = 'success') {
   renderGroupedList(cachedGroups, groupSearchInput ? groupSearchInput.value : '');
   renderExtras(records);
   renderDeclinedList(records);
+  updateTabCounts(records, cachedGroups);
 
   renderPlanner(
     fetchErrorMessage || statusMessage,
@@ -2603,6 +2610,77 @@ if (tableContextCancelButton) {
   tableContextCancelButton.addEventListener('click', () => {
     closeTableContextMenu();
   });
+}
+
+/* ── Pestañas del panel ── */
+const PANEL_TAB_STORAGE_KEY = 'ev-panel-active-tab';
+const panelTabs = document.getElementById('panel-tabs');
+const tabButtons = Array.from(document.querySelectorAll('.panel-tab'));
+const tabPanels = Array.from(document.querySelectorAll('.tab-panel'));
+
+function setActiveTab(tabName, persist = true) {
+  const target = tabButtons.some((button) => button.dataset.tab === tabName)
+    ? tabName
+    : 'invitados';
+
+  tabButtons.forEach((button) => {
+    button.setAttribute('aria-selected', button.dataset.tab === target ? 'true' : 'false');
+  });
+
+  tabPanels.forEach((panel) => {
+    panel.hidden = panel.id !== `tab-${target}`;
+  });
+
+  if (persist) {
+    try {
+      localStorage.setItem(PANEL_TAB_STORAGE_KEY, target);
+    } catch (error) {
+      // Ignore storage errors.
+    }
+    window.location.hash = target;
+  }
+
+  // El croquis necesita medir su contenedor: al mostrarse hay que
+  // reaplicar la vista para que el zoom y el paneo queden correctos.
+  if (target === 'mesas') {
+    requestAnimationFrame(() => applyMapViewTransform());
+  }
+}
+
+function updateTabCounts(records, groups) {
+  const setCount = (id, value) => {
+    const element = document.getElementById(id);
+    if (element) element.textContent = String(value);
+  };
+
+  setCount('tab-count-invitados', groups.length);
+  setCount('tab-count-mesas', plannerState.tables.length);
+  setCount(
+    'tab-count-detalles',
+    records.filter((record) => record.song || record.message).length
+  );
+}
+
+if (panelTabs) {
+  panelTabs.addEventListener('click', (event) => {
+    const button = event.target instanceof HTMLElement
+      ? event.target.closest('.panel-tab')
+      : null;
+
+    if (button && button.dataset.tab) {
+      setActiveTab(button.dataset.tab);
+    }
+  });
+
+  const hashTab = (window.location.hash || '').replace('#', '');
+  let storedTab = '';
+  try {
+    storedTab = localStorage.getItem(PANEL_TAB_STORAGE_KEY) || '';
+  } catch (error) {
+    storedTab = '';
+  }
+
+  setActiveTab(hashTab || storedTab || 'invitados', false);
 }
 
 if (assignmentSelectedCancel) {
