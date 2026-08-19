@@ -1002,6 +1002,18 @@ main {
   }
 }
 
+.gifts__cash {
+  margin: 1rem auto 0;
+  width: min(560px, 100%);
+  padding: 0.8rem 1rem;
+  border: 1px dashed rgba(189, 169, 125, 0.65);
+  background: rgba(255, 255, 255, 0.4);
+  font-size: clamp(0.95rem, 2vw, 1.1rem);
+  line-height: 1.7;
+  font-style: italic;
+  color: #55492f;
+}
+
 .gifts__btn {
   margin-top: 1rem;
   border: 1px solid var(--gold);

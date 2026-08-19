@@ -420,7 +420,7 @@ if (giftButton && giftThanks) {
   });
 }
 
-const RSVP_STORAGE_KEY = 'ev-rsvp-records-v1';
+
 const RSVP_DEADLINE = new Date('2026-09-20T23:59:59-06:00');
 
 const rsvpForm = document.getElementById('rsvp-form');
@@ -507,103 +507,54 @@ function normalizeStoredRecord(record) {
   };
 }
 
-function readRsvpRecords() {
-  try {
-    const raw = localStorage.getItem(RSVP_STORAGE_KEY);
-    if (!raw) {
-      return [];
-    }
-
-    const parsed = JSON.parse(raw);
-    if (!Array.isArray(parsed)) {
-      return [];
-    }
-
-    return parsed
-      .map((record) => normalizeStoredRecord(record))
-      .filter((record) => record.fullName);
-  } catch (error) {
-    return [];
-  }
-}
-
-function writeRsvpRecords(records) {
-  try {
-    localStorage.setItem(RSVP_STORAGE_KEY, JSON.stringify(records));
-    return true;
-  } catch (error) {
-    return false;
-  }
-}
-
-function lookupRsvpByName(fullName) {
+/* Las confirmaciones se guardan en la base de datos compartida (rsvp-api.js)
+   para que los novios las vean desde su panel en cualquier dispositivo. */
+async function lookupRsvpByName(fullName) {
   const normalizedFullName = normalizeName(fullName);
   if (!normalizedFullName) {
     return { ok: true, found: false };
   }
 
-  const rows = readRsvpRecords();
-  const match = rows.find((row) => row.normalizedFullName === normalizedFullName);
-
-  if (!match) {
-    return { ok: true, found: false };
+  try {
+    const record = await RSVP_API.findByNormalizedName(normalizedFullName);
+    if (!record) {
+      return { ok: true, found: false };
+    }
+    return { ok: true, found: true, record };
+  } catch (error) {
+    return {
+      ok: false,
+      error: 'No se pudo verificar tu nombre. Revisa tu conexion a internet.',
+    };
   }
-
-  return {
-    ok: true,
-    found: true,
-    record: match,
-  };
 }
 
-function upsertRsvp(payload) {
+async function upsertRsvp(payload) {
   const normalizedPayload = normalizeStoredRecord(payload);
-  const records = readRsvpRecords();
-  const existingIndex = records.findIndex(
-    (record) => record.normalizedFullName === normalizedPayload.normalizedFullName
-  );
 
-  if (existingIndex >= 0 && records[existingIndex].email.toLowerCase() !== normalizedPayload.email.toLowerCase()) {
+  try {
+    const existing = await RSVP_API.findByNormalizedName(normalizedPayload.normalizedFullName);
+
+    if (existing && existing.email.toLowerCase() !== normalizedPayload.email.toLowerCase()) {
+      return {
+        ok: false,
+        error: 'Este nombre ya confirmo con otro correo. Usa ese correo para editar.',
+      };
+    }
+
+    if (existing) {
+      const saved = await RSVP_API.update(existing.id, normalizedPayload);
+      return { ok: true, mode: 'updated', record: saved || normalizedPayload };
+    }
+
+    const saved = await RSVP_API.insert(normalizedPayload);
+    return { ok: true, mode: 'created', record: saved || normalizedPayload };
+  } catch (error) {
     return {
       ok: false,
-      error: 'Este nombre ya confirmo con otro correo. Usa ese correo para editar.',
+      error: 'No se pudo guardar tu confirmacion. Revisa tu conexion a internet e intenta de nuevo.',
     };
   }
-
-  const nowIso = new Date().toISOString();
-  let mode = 'created';
-
-  if (existingIndex >= 0) {
-    mode = 'updated';
-    const existing = records[existingIndex];
-    records[existingIndex] = {
-      ...normalizedPayload,
-      id: existing.id,
-      createdAt: existing.createdAt,
-      updatedAt: nowIso,
-    };
-  } else {
-    records.push({
-      ...normalizedPayload,
-      id: normalizedPayload.id,
-      createdAt: nowIso,
-      updatedAt: nowIso,
-    });
-  }
-
-  if (!writeRsvpRecords(records)) {
-    return {
-      ok: false,
-      error: 'No se pudo guardar la confirmacion en este dispositivo.',
-    };
-  }
-
-  const saved = records.find((record) => record.normalizedFullName === normalizedPayload.normalizedFullName);
-  return {
-    ok: true,
-    mode,
-    record: saved || normalizedPayload,
-  };
 }
 
 function isDeadlinePassed() {
@@ -945,14 +896,16 @@ async function checkNameDuplicate() {
   }
 
   setRsvpStatus('Verificando si este nombre ya confirmo asistencia...', 'info');
-  const lookupResult = lookupRsvpByName(fullName);
+  const lookupResult = await lookupRsvpByName(fullName);
 
   if (requestVersion !== lookupRequestVersion) {
     return;
   }
 
   if (!lookupResult.ok) {
-    setRsvpStatus(lookupResult.error || 'No se pudo revisar duplicados por nombre.', 'error');
+    // Si la verificacion falla (sin conexion), no bloqueamos: el guardado
+    // final vuelve a validar duplicados contra la base de datos.
+    setRsvpStatus('', 'info');
     return;
   }
 
@@ -1086,7 +1039,7 @@ if (rsvpForm && rsvpThanks) {
       recordId: existingRsvpRecord ? existingRsvpRecord.id : '',
     };
 
-    const saveResult = upsertRsvp(upsertPayload);
+    const saveResult = await upsertRsvp(upsertPayload);
 
     if (!saveResult.ok) {
       setSavingState(false, existingRsvpRecord ? 'edit' : 'create');

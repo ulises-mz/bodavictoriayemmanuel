@@ -1,6 +1,5 @@
 const PANEL_SESSION_KEY = 'ev-couple-panel-auth';
 const PANEL_LOGIN_ROUTE = 'panel-login.html';
-const RSVP_STORAGE_KEY = 'ev-rsvp-records-v1';
 const TABLE_PLAN_STORAGE_KEY = 'ev-table-plan-v1';
 const TABLE_RATIO_PRESETS = ['1:1', '1:2', '2:1', '3:2', '2:3'];
 const MIN_MAP_ZOOM = 0.2;
@@ -137,24 +136,20 @@ function normalizeStoredRecord(record) {
   };
 }
 
+/* Las confirmaciones viven en la base de datos compartida (rsvp-api.js):
+   se cargan al abrir el panel y con el boton "Actualizar", y quedan en
+   este cache para el resto de la interfaz. */
+let rsvpRecordsCache = [];
+
 function readRsvpRecords() {
-  try {
-    const raw = localStorage.getItem(RSVP_STORAGE_KEY);
-    if (!raw) {
-      return [];
-    }
+  return rsvpRecordsCache;
+}
 
-    const parsed = JSON.parse(raw);
-    if (!Array.isArray(parsed)) {
-      return [];
-    }
-
-    return parsed
-      .map((record) => normalizeStoredRecord(record))
-      .filter((record) => record.fullName);
-  } catch (error) {
-    return [];
-  }
+async function loadRsvpRecordsFromServer() {
+  const records = await RSVP_API.fetchAll();
+  rsvpRecordsCache = records
+    .map((record) => normalizeStoredRecord(record))
+    .filter((record) => record.fullName);
 }
 
 function setTablePlanStatus(message, type = 'success') {
@@ -2240,7 +2235,7 @@ function handleMapContextMenu(event) {
   openTableContextMenu(tableId);
 }
 
-function refreshDashboard(statusMessage = '', statusType = 'success') {
+async function refreshDashboard(statusMessage = '', statusType = 'success') {
   const savedPlan = loadPlanConfig();
   if (savedPlan) {
     plannerState = {
@@ -2251,6 +2246,15 @@ function refreshDashboard(statusMessage = '', statusType = 'success') {
     };
   }
 
+  let fetchErrorMessage = '';
+  setTablePlanStatus('Cargando confirmaciones...', 'success');
+
+  try {
+    await loadRsvpRecordsFromServer();
+  } catch (error) {
+    fetchErrorMessage = 'No se pudieron cargar las confirmaciones. Revisa tu conexion a internet y toca "Actualizar".';
+  }
+
   const records = readRsvpRecords();
   cachedGroups = buildGuestGroups(records);
   cachedIndividuals = buildGuestIndividuals(records);
@@ -2259,7 +2263,10 @@ function refreshDashboard(statusMessage = '', statusType = 'success') {
   renderGroupedList(cachedGroups, groupSearchInput ? groupSearchInput.value : '');
   renderDeclinedList(records);
 
-  renderPlanner(statusMessage, statusType);
+  renderPlanner(
+    fetchErrorMessage || statusMessage,
+    fetchErrorMessage ? 'error' : statusType
+  );
 }
 
 if (refreshButton) {
