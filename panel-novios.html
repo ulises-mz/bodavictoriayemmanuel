@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&family=Sora:wght@400;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="panel-novios.css?v=20260819d" />
+  <link rel="stylesheet" href="panel-novios.css?v=20260819e" />
 </head>
 <body>
   <div class="dashboard-bg dashboard-bg--a" aria-hidden="true"></div>
@@ -125,58 +125,59 @@
             <span id="planner-progress-fill"></span>
           </div>
 
-          <!-- Un solo lugar para crear mesas. -->
-          <details class="planner-block" id="planner-setup-block">
-            <summary class="planner-block__summary">
-              <span class="planner-block__title">1 · Crear mesas</span>
-              <span class="planner-block__hint" id="setup-summary-hint">Empieza aqui</span>
-            </summary>
-
-            <div class="planner-block__body">
-              <div class="planner-create">
-                <label>
-                  <span>Nombre (opcional)</span>
-                  <input type="text" name="tableLabel" maxlength="40" placeholder="Mesa Jardin" />
-                </label>
-                <label>
-                  <span>Asientos</span>
-                  <input type="number" name="tableCapacity" min="1" max="30" value="8" required />
-                </label>
-                <button type="button" id="table-add-btn" class="btn btn--secondary">Agregar mesa</button>
-              </div>
-
-              <p class="planner-or">o crea varias de una vez</p>
-
-              <div class="planner-create">
-                <label>
-                  <span>Cuantas mesas</span>
-                  <input type="number" name="tableCount" min="1" max="60" value="12" />
-                </label>
-                <label>
-                  <span>Asientos c/u</span>
-                  <input type="number" name="seatsPerTable" min="1" max="30" value="8" />
-                </label>
-                <button type="button" id="table-generate-uniform" class="btn btn--neutral">Crear todas</button>
-              </div>
-
-              <div class="planner-tables-head">
-                <h4>Tus mesas</h4>
-                <button type="button" id="table-plan-reset" class="btn btn--mini btn--danger-soft">Limpiar todo</button>
-              </div>
-              <p class="planner-step__hint">Cambia el nombre o los asientos aqui. El tamano y la forma se ajustan con el boton ✎ de cada mesa en el croquis.</p>
-              <div id="table-config-list" class="table-config-list"></div>
+          <!-- Barra unica de acciones: crear mesas, acomodar y limpiar. -->
+          <div class="planner-toolbar">
+            <div class="planner-toolbar__group">
+              <button type="button" id="table-add-btn" class="btn btn--secondary">+ Agregar mesa</button>
+              <button type="button" id="assignment-auto-btn" class="btn btn--primary" data-mode="auto">Acomodar a todos</button>
             </div>
-          </details>
+
+            <div class="planner-toolbar__group planner-toolbar__group--end">
+              <details class="planner-menu">
+                <summary class="btn btn--soft">Mas opciones</summary>
+                <div class="planner-menu__body">
+                  <div class="planner-create">
+                    <label>
+                      <span>Nombre de la mesa</span>
+                      <input type="text" name="tableLabel" maxlength="40" placeholder="Mesa Jardin" />
+                    </label>
+                    <label>
+                      <span>Asientos</span>
+                      <input type="number" name="tableCapacity" min="1" max="30" value="8" required />
+                    </label>
+                  </div>
+                  <p class="planner-menu__note">Estos datos se usan al tocar "Agregar mesa".</p>
+
+                  <hr class="planner-menu__sep" />
+
+                  <div class="planner-create">
+                    <label>
+                      <span>Cuantas mesas</span>
+                      <input type="number" name="tableCount" min="1" max="60" value="12" />
+                    </label>
+                    <label>
+                      <span>Asientos c/u</span>
+                      <input type="number" name="seatsPerTable" min="1" max="30" value="8" />
+                    </label>
+                  </div>
+                  <button type="button" id="table-generate-uniform" class="btn btn--neutral">Crear varias mesas de una vez</button>
+
+                  <hr class="planner-menu__sep" />
+
+                  <button type="button" id="table-plan-reset" class="btn btn--danger-soft">Borrar todas las mesas</button>
+                </div>
+              </details>
+            </div>
+          </div>
 
           <section class="planner-block planner-block--open" aria-labelledby="planner-step-assign-title">
             <div class="planner-block__summary planner-block__summary--static">
-              <span class="planner-block__title" id="planner-step-assign-title">2 · Acomodar invitados</span>
+              <span class="planner-block__title" id="planner-step-assign-title">Como quieres sentarlos</span>
             </div>
 
             <div id="assignment-mode-tabs" class="assignment-mode-tabs" role="tablist" aria-label="Modo de asignacion">
               <button type="button" class="assignment-mode-tab" data-mode="group">Por familia</button>
               <button type="button" class="assignment-mode-tab" data-mode="individual">Por persona</button>
-              <button type="button" class="assignment-mode-tab assignment-mode-tab--auto" id="assignment-auto-btn" data-mode="auto">Acomodar solo</button>
             </div>
 
             <p id="planner-mode-hint" class="planner-mode-hint"></p>
@@ -202,15 +203,15 @@
 
               <section class="assignment-map-shell" aria-label="Area de asignacion por mesa">
                 <div class="panel-head panel-head--stack planner-subhead">
-                  <h3>Croquis de asignacion</h3>
-                  <p>Toca "Editar" en una mesa para cambiar su nombre, capacidad o forma. Arrastra desde "Mover" para reposicionarla.</p>
+                  <h3>Croquis del salon</h3>
+                  <p>✎ edita la mesa · Mover la reubica · toca un asiento para sentar al invitado seleccionado.</p>
                 </div>
 
                 <div class="map-toolbar" aria-label="Controles del lienzo">
                   <div class="map-toolbar__group">
                     <button type="button" id="map-zoom-out" class="btn btn--mini btn--soft">-</button>
                     <button type="button" id="map-zoom-in" class="btn btn--mini btn--soft">+</button>
-                    <button type="button" id="map-view-reset" class="btn btn--mini btn--neutral">Reiniciar vista</button>
+                    <button type="button" id="map-view-reset" class="btn btn--mini btn--neutral">Centrar</button>
                   </div>
                   <p id="map-zoom-label" class="map-zoom-label">Zoom 100%</p>
                 </div>
@@ -259,8 +260,15 @@
           <p id="table-plan-explainer" class="table-plan-explainer"></p>
         </form>
 
+        <!-- Detalle mesa por mesa: util para imprimir o repasar, pero
+             plegado para no repetir lo que ya muestra el croquis. -->
         <p id="table-plan-status" class="table-plan-status" hidden></p>
-        <div id="table-plan-output" class="table-plan-output"></div>
+
+        <details class="planner-detail">
+          <summary class="planner-detail__summary">Ver lista de mesas e invitados</summary>
+          <div id="table-config-list" class="table-config-list" hidden></div>
+          <div id="table-plan-output" class="table-plan-output"></div>
+        </details>
       </article>
     </section>
 
@@ -286,7 +294,7 @@
     </section>
   </main>
 
-  <script src="rsvp-api.js?v=20260819d"></script>
-  <script src="panel-novios.js?v=20260819d"></script>
+  <script src="rsvp-api.js?v=20260819e"></script>
+  <script src="panel-novios.js?v=20260819e"></script>
 </body>
 </html>

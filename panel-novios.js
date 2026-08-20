@@ -1604,18 +1604,6 @@ function renderPlannerSummary(planResult) {
     fill.style.transform = `scaleX(${Math.max(0, Math.min(1, ratio)).toFixed(4)})`;
   }
 
-  const setupHint = document.getElementById('setup-summary-hint');
-  if (setupHint) {
-    setupHint.textContent = plannerState.tables.length
-      ? `${plannerState.tables.length} ${plannerState.tables.length === 1 ? 'mesa' : 'mesas'} · ${totalSeats} asientos`
-      : 'Empieza aqui';
-  }
-
-  // La configuracion se abre sola mientras no haya mesas.
-  const setupBlock = document.getElementById('planner-setup-block');
-  if (setupBlock && !plannerState.tables.length) {
-    setupBlock.open = true;
-  }
 }
 
 function renderPlanner(statusMessage = '', statusType = 'success') {
@@ -2813,6 +2801,27 @@ if (panelTabs) {
   }
 
   setActiveTab(hashTab || storedTab || 'invitados', false);
+}
+
+/* El menu "Mas opciones" se cierra al usar una de sus acciones o al
+   tocar fuera, como cualquier menu. */
+const plannerMenu = document.querySelector('.planner-menu');
+
+if (plannerMenu) {
+  plannerMenu.addEventListener('click', (event) => {
+    const target = event.target;
+    if (target instanceof HTMLElement && target.closest('button.btn:not(summary)')) {
+      plannerMenu.open = false;
+    }
+  });
+
+  document.addEventListener('pointerdown', (event) => {
+    if (!plannerMenu.open) return;
+    const target = event.target;
+    if (target instanceof Node && !plannerMenu.contains(target)) {
+      plannerMenu.open = false;
+    }
+  });
 }
 
 if (assignmentSelectedCancel) {

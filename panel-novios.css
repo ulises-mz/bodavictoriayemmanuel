@@ -525,6 +525,105 @@ h1 {
   transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
+/* Barra unica de acciones del planificador. */
+.planner-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.planner-toolbar__group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  align-items: center;
+}
+
+.planner-menu {
+  position: relative;
+}
+
+.planner-menu > summary {
+  list-style: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.planner-menu > summary::-webkit-details-marker {
+  display: none;
+}
+
+.planner-menu__body {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 0.4rem);
+  z-index: 20;
+  width: min(330px, 84vw);
+  display: grid;
+  gap: 0.55rem;
+  border: 1px solid rgba(102, 125, 103, 0.5);
+  border-radius: 0.92rem;
+  background: rgba(255, 255, 255, 0.98);
+  box-shadow: 0 20px 40px rgba(31, 45, 37, 0.24);
+  padding: 0.8rem;
+}
+
+.planner-menu__note {
+  margin: 0;
+  font-family: 'Sora', sans-serif;
+  font-size: 0.54rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  line-height: 1.5;
+  color: #6d7f70;
+}
+
+.planner-menu__sep {
+  margin: 0;
+  border: 0;
+  border-top: 1px solid rgba(160, 143, 109, 0.32);
+}
+
+/* Detalle mesa por mesa, plegado por defecto. */
+.planner-detail {
+  margin-top: 0.7rem;
+  border: 1px solid rgba(160, 143, 109, 0.34);
+  border-radius: 0.92rem;
+  background: rgba(255, 255, 255, 0.7);
+  overflow: hidden;
+}
+
+.planner-detail__summary {
+  padding: 0.8rem 0.9rem;
+  cursor: pointer;
+  list-style: none;
+  font-family: 'Sora', sans-serif;
+  font-size: 0.66rem;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: #3d5745;
+}
+
+.planner-detail__summary::-webkit-details-marker {
+  display: none;
+}
+
+.planner-detail__summary::after {
+  content: ' ▾';
+  color: #6a7c6d;
+}
+
+.planner-detail[open] .planner-detail__summary::after {
+  content: ' ▴';
+}
+
+.planner-detail .table-plan-output {
+  padding: 0 0.9rem 0.9rem;
+}
+
 .planner-block {
   border: 1px solid rgba(160, 143, 109, 0.36);
   border-radius: 0.94rem;
